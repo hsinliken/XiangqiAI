@@ -54,17 +54,7 @@ export default function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [systemPrompt, setSystemPrompt] = useState('');
 
-  // Initialize
-  useEffect(() => {
-    // Load prompt from storage service (simulating DB fetch)
-    const storedPrompt = storage.getSystemPrompt();
-    setSystemPrompt(storedPrompt);
-
-    // Initial Shuffle
-    resetGame();
-  }, []);
-
-  const resetGame = () => {
+  const resetGame = useCallback(() => {
     setPhase(GamePhase.SHUFFLING);
     setTimeout(() => {
       setDeck(shuffleDeck(INITIAL_DECK));
@@ -81,7 +71,17 @@ export default function App() {
       setResult(null);
       setPhase(GamePhase.PICKING);
     }, 800);
-  };
+  }, []);
+
+  // Initialize
+  useEffect(() => {
+    // Load prompt from storage service (simulating DB fetch)
+    const storedPrompt = storage.getSystemPrompt();
+    setSystemPrompt(storedPrompt);
+
+    // Initial Shuffle
+    resetGame();
+  }, [resetGame]);
 
   const handleCardClick = (piece: ChessPiece) => {
     if (phase !== GamePhase.PICKING) return;

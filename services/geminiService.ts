@@ -2,8 +2,14 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { ChessPiece, DivinationResult, SlotPosition, PieceColor } from "../types";
 import { storage } from "./storage";
 
-// Initialize Gemini Client
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Lazy initialization of Gemini Client (only when needed)
+const getAI = () => {
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error("VITE_GEMINI_API_KEY is not set. Please create a .env file with your API key.");
+  }
+  return new GoogleGenAI({ apiKey });
+};
 
 // Mappings for the Prompt Rules
 const PIECE_TYPE_CODE: Record<string, number> = {
@@ -85,6 +91,7 @@ export const analyzeDivination = async (
     .replace('{{USER_INPUT_CATEGORY}}', categoryLabel);
 
   try {
+    const ai = getAI();
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       config: {
