@@ -134,24 +134,19 @@ export default function App() {
           });
           
           // Small delay to ensure DOM is fully rendered
-          // 增加延遲時間，確保 DOM 渲染完成
-          await new Promise(resolve => setTimeout(resolve, 500));
+          await new Promise(resolve => setTimeout(resolve, 200));
           
           const canvas = await window.html2canvas(element, { 
-            scale: 1.0, // 確保以原始比例擷取，避免縮放導致的渲染問題
+            scale: 0.8, // Slightly lower scale to save DB space
             backgroundColor: '#064e3b', // Use the background color instead of transparent
             logging: false,
             useCORS: true,
             allowTaint: true
           });
-
-          if (canvas && canvas.width > 0 && canvas.height > 0) {
-            capturedImage = canvas.toDataURL('image/png');
-            console.log(`[Image Capture] ✅ Successfully captured image, size: ${capturedImage.length} characters`);
-            console.log(`[Image Capture] Image preview: ${capturedImage.substring(0, 50)}...`);
-          } else {
-            console.error('[Image Capture] ❌ html2canvas created an invalid or empty canvas.');
-          }
+          
+          capturedImage = canvas.toDataURL('image/png');
+          console.log(`[Image Capture] ✅ Successfully captured image, size: ${capturedImage.length} characters`);
+          console.log(`[Image Capture] Image preview: ${capturedImage.substring(0, 50)}...`);
         } else {
           console.error('[Image Capture] ❌ Element with id "layout-slots-capture" not found');
           console.error('[Image Capture] Available elements:', document.querySelectorAll('[id*="layout"]'));

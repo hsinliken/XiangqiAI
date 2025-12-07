@@ -105,10 +105,15 @@ export const saveDivinationResult = async (
     
     // Upload image to Firebase Storage if provided
     if (layoutImage) {
+      console.log(`[Firebase] Attempting to upload image for ${uniqueKey}, image size: ${layoutImage.length} characters`);
       imageUrl = await uploadImageToStorage(layoutImage, uniqueKey);
-      if (!imageUrl) {
-        console.warn(`[Firebase] Failed to upload image for ${uniqueKey}, saving without image`);
+      if (imageUrl) {
+        console.log(`[Firebase] Image uploaded successfully, URL: ${imageUrl.substring(0, 50)}...`);
+      } else {
+        console.error(`[Firebase] Failed to upload image for ${uniqueKey}, saving without image`);
       }
+    } else {
+      console.log(`[Firebase] No layoutImage provided for ${uniqueKey}`);
     }
     
     // Build record object, only include layout_image if imageUrl exists
@@ -125,15 +130,23 @@ export const saveDivinationResult = async (
     // Only add layout_image if we have a URL
     if (imageUrl) {
       record.layout_image = imageUrl; // Store the Firebase Storage URL instead of base64
+      console.log(`[Firebase] Adding layout_image to record: ${imageUrl.substring(0, 50)}...`);
+    } else {
+      console.log(`[Firebase] No imageUrl to add to record`);
     }
     
     const docRef = doc(db, COLLECTIONS.DIVINATION_RESULTS, uniqueKey);
+    console.log(`[Firebase] Saving record to Firestore: ${uniqueKey}`);
+    console.log(`[Firebase] Record data:`, { 
+      has_layout_image: !!record.layout_image,
+      layout_image_preview: record.layout_image ? record.layout_image.substring(0, 50) + '...' : 'none'
+    });
     await setDoc(docRef, record);
     
     if (imageUrl) {
-      console.log(`[Firebase] Result saved for ${uniqueKey} with image URL: ${imageUrl}`);
+      console.log(`[Firebase] ✅ Result saved for ${uniqueKey} with image URL: ${imageUrl}`);
     } else {
-      console.log(`[Firebase] Result saved for ${uniqueKey} WITHOUT image`);
+      console.log(`[Firebase] ⚠️ Result saved for ${uniqueKey} WITHOUT image`);
     }
   } catch (error: any) {
     console.error('[Firebase] Error saving result:', error);

@@ -87,6 +87,13 @@ export const analyzeDivination = async (
       // Update the image using storage service
       await storage.saveResult(cacheKey, guaCodeString, categoryId, cachedResult, layoutImage);
       console.log(`[Cache] Image updated for ${cacheKey}, size: ${layoutImage.length} characters`);
+      
+      // Re-fetch the updated result to get the new image URL
+      const updatedResult = await storage.getCachedResult(cacheKey);
+      if (updatedResult) {
+        console.log(`[Cache] Returning updated result with image URL: ${updatedResult.layout_image ? 'Yes' : 'No'}`);
+        return updatedResult;
+      }
     } else {
       console.log(`[Cache] No image provided for ${cacheKey}, using cached result`);
     }
