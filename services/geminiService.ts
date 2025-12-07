@@ -76,8 +76,27 @@ export const analyzeDivination = async (
   // 3. Check Cache
   const cachedResult = storage.getCachedResult(cacheKey);
   if (cachedResult) {
-    // If we have a cached result but no image, and we just captured one, we might want to update it?
-    // For now, simple return.
+    // If we have a cached result but no image, and we just captured one, update it
+    // Also update if we have a new image (to ensure latest capture is saved)
+    if (layoutImage) {
+      if (!cachedResult.layout_image) {
+        console.log(`[Cache] Updating missing image for ${cacheKey}`);
+      } else {
+        console.log(`[Cache] Updating existing image for ${cacheKey} with new capture`);
+      }
+      // Update the image field directly
+      const rawData = localStorage.getItem('xiangqi_divination_results');
+      if (rawData) {
+        const db = JSON.parse(rawData);
+        if (db[cacheKey]) {
+          db[cacheKey].layout_image = layoutImage;
+          localStorage.setItem('xiangqi_divination_results', JSON.stringify(db));
+          console.log(`[Cache] Image updated for ${cacheKey}, size: ${layoutImage.length} characters`);
+        }
+      }
+    } else {
+      console.log(`[Cache] No image provided for ${cacheKey}, using cached result`);
+    }
     return cachedResult;
   }
 
@@ -143,6 +162,11 @@ export const analyzeDivination = async (
 
     // 5. Save to Cache with Image
     storage.saveResult(cacheKey, guaCodeString, categoryId, uiResult, layoutImage);
+    if (layoutImage) {
+      console.log(`[Save] Result saved with image for ${cacheKey}, image size: ${layoutImage.length} characters`);
+    } else {
+      console.warn(`[Save] Result saved WITHOUT image for ${cacheKey}`);
+    }
 
     return uiResult;
 

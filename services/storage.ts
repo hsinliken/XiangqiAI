@@ -76,7 +76,11 @@ export const storage = {
       db[uniqueKey] = newRecord;
 
       localStorage.setItem(COLLECTIONS.DIVINATION_RESULTS, JSON.stringify(db));
-      console.log(`[MongoDB Mock] Result saved for ${uniqueKey}`);
+      if (layoutImage) {
+        console.log(`[MongoDB Mock] Result saved for ${uniqueKey} with image (${layoutImage.length} chars)`);
+      } else {
+        console.log(`[MongoDB Mock] Result saved for ${uniqueKey} WITHOUT image`);
+      }
     } catch (e) {
       console.error("Error saving cache", e);
     }

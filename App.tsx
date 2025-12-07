@@ -115,25 +115,38 @@ export default function App() {
 
   const handleCategorySelect = async (cat: typeof CATEGORIES[0]) => {
     setCategory(cat);
-    setPhase(GamePhase.ANALYZING);
-
-    // Capture visual representation using html2canvas
+    
+    // Capture visual representation using html2canvas BEFORE changing phase
+    // This ensures the element is still visible and rendered
     let capturedImage = undefined;
     try {
       if (window.html2canvas) {
         const element = document.getElementById('layout-slots-capture');
         if (element) {
+          console.log('[Image Capture] Starting capture of layout-slots-capture element');
+          // Small delay to ensure DOM is fully rendered
+          await new Promise(resolve => setTimeout(resolve, 100));
           const canvas = await window.html2canvas(element, { 
             scale: 0.8, // Slightly lower scale to save DB space
-            backgroundColor: null, // Transparent background
-            logging: false
+            backgroundColor: '#064e3b', // Use the background color instead of transparent
+            logging: false,
+            useCORS: true,
+            allowTaint: true
           });
           capturedImage = canvas.toDataURL('image/png');
+          console.log(`[Image Capture] Successfully captured image, size: ${capturedImage.length} characters`);
+        } else {
+          console.warn('[Image Capture] Element with id "layout-slots-capture" not found');
         }
+      } else {
+        console.warn('[Image Capture] html2canvas is not available');
       }
     } catch (e) {
-      console.error("Failed to capture image:", e);
+      console.error("[Image Capture] Failed to capture image:", e);
     }
+
+    // Now change phase to ANALYZING
+    setPhase(GamePhase.ANALYZING);
 
     // Call API (Service handles caching and prompt loading internally)
     const res = await analyzeDivination(selectedPieces, cat.label, cat.id, capturedImage);
