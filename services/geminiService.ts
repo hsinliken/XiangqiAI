@@ -74,7 +74,7 @@ export const analyzeDivination = async (
   const cacheKey = storage.generateCacheKey(guaCodeString, categoryId);
 
   // 3. Check Cache
-  const cachedResult = storage.getCachedResult(cacheKey);
+  const cachedResult = await storage.getCachedResult(cacheKey);
   if (cachedResult) {
     // If we have a cached result but no image, and we just captured one, update it
     // Also update if we have a new image (to ensure latest capture is saved)
@@ -84,16 +84,9 @@ export const analyzeDivination = async (
       } else {
         console.log(`[Cache] Updating existing image for ${cacheKey} with new capture`);
       }
-      // Update the image field directly
-      const rawData = localStorage.getItem('xiangqi_divination_results');
-      if (rawData) {
-        const db = JSON.parse(rawData);
-        if (db[cacheKey]) {
-          db[cacheKey].layout_image = layoutImage;
-          localStorage.setItem('xiangqi_divination_results', JSON.stringify(db));
-          console.log(`[Cache] Image updated for ${cacheKey}, size: ${layoutImage.length} characters`);
-        }
-      }
+      // Update the image using storage service
+      await storage.saveResult(cacheKey, guaCodeString, categoryId, cachedResult, layoutImage);
+      console.log(`[Cache] Image updated for ${cacheKey}, size: ${layoutImage.length} characters`);
     } else {
       console.log(`[Cache] No image provided for ${cacheKey}, using cached result`);
     }
@@ -102,7 +95,7 @@ export const analyzeDivination = async (
 
   // 4. Prepare Prompt
   // Replace placeholders in the stored System Prompt
-  let systemPromptTemplate = storage.getSystemPrompt();
+  let systemPromptTemplate = await storage.getSystemPrompt();
   
   // Inject User Data
   const finalPrompt = systemPromptTemplate
@@ -161,7 +154,7 @@ export const analyzeDivination = async (
     };
 
     // 5. Save to Cache with Image
-    storage.saveResult(cacheKey, guaCodeString, categoryId, uiResult, layoutImage);
+    await storage.saveResult(cacheKey, guaCodeString, categoryId, uiResult, layoutImage);
     if (layoutImage) {
       console.log(`[Save] Result saved with image for ${cacheKey}, image size: ${layoutImage.length} characters`);
     } else {

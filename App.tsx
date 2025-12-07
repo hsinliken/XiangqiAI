@@ -76,8 +76,11 @@ export default function App() {
   // Initialize
   useEffect(() => {
     // Load prompt from storage service (simulating DB fetch)
-    const storedPrompt = storage.getSystemPrompt();
-    setSystemPrompt(storedPrompt);
+    const loadPrompt = async () => {
+      const storedPrompt = await storage.getSystemPrompt();
+      setSystemPrompt(storedPrompt);
+    };
+    loadPrompt();
 
     // Initial Shuffle
     resetGame();
@@ -154,9 +157,9 @@ export default function App() {
     setPhase(GamePhase.RESULT);
   };
 
-  const handleSaveSettings = (newPrompt: string) => {
+  const handleSaveSettings = async (newPrompt: string) => {
     // Save to DB via service
-    storage.saveSystemPrompt(newPrompt);
+    await storage.saveSystemPrompt(newPrompt);
     setSystemPrompt(newPrompt);
   };
 

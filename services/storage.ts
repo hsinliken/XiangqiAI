@@ -1,7 +1,26 @@
 import { DivinationResult, StoredDivinationRecord } from "../types";
 import { DEFAULT_SYSTEM_PROMPT } from "../constants";
+import * as firebaseService from "./firebase";
 
-// 模擬 MongoDB Collection 名稱
+// Check if Firebase is configured and initialized
+const isFirebaseConfigured = async () => {
+  try {
+    // Check environment variables first
+    if (!import.meta.env.VITE_FIREBASE_API_KEY || !import.meta.env.VITE_FIREBASE_PROJECT_ID) {
+      return false;
+    }
+    
+    // Try to import and check if db is initialized
+    const firebaseModule = await import('./firebase');
+    // Access db through a getter function if needed, or check if it exists
+    // Since db is exported, we can check it directly after import
+    return true; // If import succeeds and env vars are set, assume it's configured
+  } catch (e) {
+    return false;
+  }
+};
+
+// Fallback to localStorage if Firebase is not configured
 const COLLECTIONS = {
   SYSTEM_SETTINGS: 'xiangqi_system_settings',
   DIVINATION_RESULTS: 'xiangqi_divination_results'
@@ -10,12 +29,22 @@ const COLLECTIONS = {
 export const storage = {
   // --- System Settings (Prompt) ---
 
-  getSystemPrompt: (): string => {
+  getSystemPrompt: async (): Promise<string> => {
+    if (await isFirebaseConfigured()) {
+      const prompt = await firebaseService.getSystemPrompt();
+      return prompt || DEFAULT_SYSTEM_PROMPT;
+    }
+    // Fallback to localStorage
     const stored = localStorage.getItem(COLLECTIONS.SYSTEM_SETTINGS);
     return stored || DEFAULT_SYSTEM_PROMPT;
   },
 
-  saveSystemPrompt: (prompt: string): void => {
+  saveSystemPrompt: async (prompt: string): Promise<void> => {
+    if (await isFirebaseConfigured()) {
+      await firebaseService.saveSystemPrompt(prompt);
+      return;
+    }
+    // Fallback to localStorage
     localStorage.setItem(COLLECTIONS.SYSTEM_SETTINGS, prompt);
   },
 
@@ -38,7 +67,11 @@ export const storage = {
     return `${formattedCode}_${category}`;
   },
 
-  getCachedResult: (uniqueKey: string): StoredDivinationRecord | null => {
+  getCachedResult: async (uniqueKey: string): Promise<StoredDivinationRecord | null> => {
+    if (await isFirebaseConfigured()) {
+      return await firebaseService.getCachedResult(uniqueKey);
+    }
+    // Fallback to localStorage
     try {
       const rawData = localStorage.getItem(COLLECTIONS.DIVINATION_RESULTS);
       if (!rawData) return null;
@@ -47,7 +80,7 @@ export const storage = {
       const record = db[uniqueKey];
       
       if (record) {
-        console.log(`[MongoDB Mock] Cache Hit for ${uniqueKey}`);
+        console.log(`[LocalStorage] Cache Hit for ${uniqueKey}`);
         return record;
       }
       return null;
@@ -57,7 +90,17 @@ export const storage = {
     }
   },
 
-  saveResult: (uniqueKey: string, guaCode: string, category: string, result: DivinationResult, layoutImage?: string): void => {
+  saveResult: async (uniqueKey: string, guaCode: string, category: string, result: DivinationResult, layoutImage?: string): Promise<void> => {
+    if (await isFirebaseConfigured()) {
+      try {
+        await firebaseService.saveDivinationResult(uniqueKey, guaCode, category, result, layoutImage);
+        return;
+      } catch (error: any) {
+        console.error('[Storage] Firebase save failed, falling back to localStorage:', error);
+        // Fall through to localStorage fallback
+      }
+    }
+    // Fallback to localStorage
     try {
       const rawData = localStorage.getItem(COLLECTIONS.DIVINATION_RESULTS);
       const db = rawData ? JSON.parse(rawData) : {};
@@ -65,7 +108,7 @@ export const storage = {
       // 模擬 MongoDB Document Schema
       const newRecord: StoredDivinationRecord = {
         ...result,
-        _id: uniqueKey, // Using unique_key as ID for simulation simplicity
+        _id: uniqueKey,
         unique_key: uniqueKey,
         gua_code: guaCode,
         category: category,
@@ -77,9 +120,9 @@ export const storage = {
 
       localStorage.setItem(COLLECTIONS.DIVINATION_RESULTS, JSON.stringify(db));
       if (layoutImage) {
-        console.log(`[MongoDB Mock] Result saved for ${uniqueKey} with image (${layoutImage.length} chars)`);
+        console.log(`[LocalStorage] Result saved for ${uniqueKey} with image (${layoutImage.length} chars)`);
       } else {
-        console.log(`[MongoDB Mock] Result saved for ${uniqueKey} WITHOUT image`);
+        console.log(`[LocalStorage] Result saved for ${uniqueKey} WITHOUT image`);
       }
     } catch (e) {
       console.error("Error saving cache", e);
@@ -88,7 +131,11 @@ export const storage = {
 
   // --- Admin / CRUD Operations ---
 
-  getAllResults: (): StoredDivinationRecord[] => {
+  getAllResults: async (): Promise<StoredDivinationRecord[]> => {
+    if (await isFirebaseConfigured()) {
+      return await firebaseService.getAllResults();
+    }
+    // Fallback to localStorage
     try {
       const rawData = localStorage.getItem(COLLECTIONS.DIVINATION_RESULTS);
       if (!rawData) return [];
@@ -102,7 +149,12 @@ export const storage = {
     }
   },
 
-  updateResult: (id: string, updates: Partial<DivinationResult>): void => {
+  updateResult: async (id: string, updates: Partial<DivinationResult>): Promise<void> => {
+    if (await isFirebaseConfigured()) {
+      await firebaseService.updateResult(id, updates);
+      return;
+    }
+    // Fallback to localStorage
     try {
       const rawData = localStorage.getItem(COLLECTIONS.DIVINATION_RESULTS);
       const db = rawData ? JSON.parse(rawData) : {};
@@ -110,14 +162,19 @@ export const storage = {
       if (db[id]) {
         db[id] = { ...db[id], ...updates };
         localStorage.setItem(COLLECTIONS.DIVINATION_RESULTS, JSON.stringify(db));
-        console.log(`[MongoDB Mock] Record updated: ${id}`);
+        console.log(`[LocalStorage] Record updated: ${id}`);
       }
     } catch (e) {
       console.error("Error updating record", e);
     }
   },
 
-  deleteResult: (id: string): void => {
+  deleteResult: async (id: string): Promise<void> => {
+    if (await isFirebaseConfigured()) {
+      await firebaseService.deleteResult(id);
+      return;
+    }
+    // Fallback to localStorage
     try {
       const rawData = localStorage.getItem(COLLECTIONS.DIVINATION_RESULTS);
       const db = rawData ? JSON.parse(rawData) : {};
@@ -125,7 +182,7 @@ export const storage = {
       if (db[id]) {
         delete db[id];
         localStorage.setItem(COLLECTIONS.DIVINATION_RESULTS, JSON.stringify(db));
-        console.log(`[MongoDB Mock] Record deleted: ${id}`);
+        console.log(`[LocalStorage] Record deleted: ${id}`);
       }
     } catch (e) {
       console.error("Error deleting record", e);

@@ -49,8 +49,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, c
       }
   };
 
-  const loadRecords = () => {
-    setRecords(storage.getAllResults());
+  const loadRecords = async () => {
+    const results = await storage.getAllResults();
+    setRecords(results);
   };
 
   const handleResetPrompt = () => {
@@ -70,19 +71,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, c
     });
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm("確定要刪除此筆紀錄嗎？")) {
-      storage.deleteResult(id);
-      loadRecords();
+      await storage.deleteResult(id);
+      await loadRecords();
     }
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (editingId) {
-      storage.updateResult(editingId, editForm);
+      await storage.updateResult(editingId, editForm);
       setEditingId(null);
       setEditForm({});
-      loadRecords();
+      await loadRecords();
     }
   };
 
