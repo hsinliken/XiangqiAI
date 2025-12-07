@@ -137,13 +137,136 @@ export default function App() {
           // 增加延遲時間，確保 DOM 渲染完成
           await new Promise(resolve => setTimeout(resolve, 500));
           
-          const canvas = await window.html2canvas(element, { 
-            scale: 1.0, // 確保以原始比例擷取，避免縮放導致的渲染問題
-            backgroundColor: '#064e3b', // Use the background color instead of transparent
-            logging: false,
-            useCORS: true,
-            allowTaint: true
+          // 創建一個完全獨立的副本，將所有計算樣式轉為內聯樣式
+          // 這樣可以避免 html2canvas 解析 oklab 顏色函數
+          const clonedElement = element.cloneNode(true) as HTMLElement;
+          
+          // 創建一個新的容器，用於隔離樣式
+          const container = document.createElement('div');
+          container.style.position = 'absolute';
+          container.style.left = '-9999px';
+          container.style.top = '0';
+          container.style.width = element.offsetWidth + 'px';
+          container.style.height = element.offsetHeight + 'px';
+          container.style.backgroundColor = '#064e3b';
+          container.id = 'temp-capture-container';
+          document.body.appendChild(container);
+          container.appendChild(clonedElement);
+          
+          // 簡單的 oklab/oklch 轉換為 rgb
+          const convertColorFormat = (colorValue: string): string => {
+            // 如果包含 oklab 或 oklch，轉換為備用顏色
+            if (String(colorValue).includes('oklab') || String(colorValue).includes('oklch')) {
+              return 'rgb(100, 100, 100)'; // 灰色備用
+            }
+            return colorValue;
+          };
+          
+          // 將所有計算樣式應用到克隆元素的內聯樣式
+          const applyComputedStyles = (original: Element, clone: Element) => {
+            const computed = window.getComputedStyle(original);
+            const cloneEl = clone as HTMLElement;
+            
+            // 獲取所有 CSS 屬性
+            const allProps = [
+              // 顏色相關
+              'color', 'backgroundColor', 
+              'borderColor', 'borderTopColor', 'borderRightColor', 
+              'borderBottomColor', 'borderLeftColor',
+              'outlineColor', 'textDecorationColor',
+              // 邊框相關
+              'borderWidth', 'borderStyle', 'borderRadius',
+              'borderTopWidth', 'borderRightWidth', 'borderBottomWidth', 'borderLeftWidth',
+              'borderTopStyle', 'borderRightStyle', 'borderBottomStyle', 'borderLeftStyle',
+              // 尺寸和位置
+              'width', 'height', 'minWidth', 'minHeight', 'maxWidth', 'maxHeight',
+              'padding', 'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft',
+              'margin', 'marginTop', 'marginRight', 'marginBottom', 'marginLeft',
+              // 字體
+              'fontSize', 'fontFamily', 'fontWeight', 'fontStyle', 'lineHeight',
+              'textAlign', 'textDecoration', 'textTransform',
+              // 顯示
+              'display', 'position', 'top', 'right', 'bottom', 'left',
+              'flexDirection', 'justifyContent', 'alignItems', 'alignContent',
+              'gap', 'gridTemplateColumns', 'gridTemplateRows',
+              // 其他
+              'opacity', 'transform', 'boxShadow', 'textShadow',
+              'overflow', 'overflowX', 'overflowY',
+              'zIndex', 'pointerEvents', 'cursor'
+            ];
+            
+            // 應用所有屬性
+            allProps.forEach(prop => {
+              try {
+                let value = (computed as any)[prop];
+                
+                // 檢查並轉換 oklab/oklch 顏色
+                const valueStr = String(value);
+                if (valueStr.includes('oklab') || valueStr.includes('oklch')) {
+                  value = convertColorFormat(value);
+                }
+                
+                if (value && 
+                    value !== 'none' &&
+                    value !== 'auto' &&
+                    value !== 'transparent' && 
+                    value !== 'initial' && 
+                    value !== 'inherit' &&
+                    value !== 'rgba(0, 0, 0, 0)') {
+                  cloneEl.style[prop as any] = value;
+                }
+              } catch (e) {
+                // 忽略無法訪問的屬性
+              }
+            });
+            
+            // 遞歸處理子元素
+            const originalChildren = Array.from(original.children);
+            const cloneChildren = Array.from(clone.children);
+            originalChildren.forEach((origChild, idx) => {
+              if (cloneChildren[idx]) {
+                applyComputedStyles(origChild, cloneChildren[idx]);
+              }
+            });
+          };
+          
+          // 應用樣式到克隆元素及其所有子元素
+          applyComputedStyles(element, clonedElement);
+          
+          // 臨時禁用所有樣式表，強制只使用內聯樣式
+          const styleSheets: Array<{ link: HTMLLinkElement; disabled: boolean }> = [];
+          const allLinks = document.querySelectorAll('link[rel="stylesheet"]');
+          allLinks.forEach((link: Element) => {
+            const linkEl = link as HTMLLinkElement;
+            styleSheets.push({ link: linkEl, disabled: linkEl.disabled });
+            linkEl.disabled = true; // 臨時禁用樣式表
           });
+          
+          // 等待樣式應用完成並強制重繪
+          await new Promise(resolve => setTimeout(resolve, 200));
+          
+          let canvas: HTMLCanvasElement | null = null;
+          try {
+            // 使用容器進行截圖，配置選項以避免解析 oklab 顏色
+            canvas = await window.html2canvas(container, { 
+              scale: 1.0,
+              backgroundColor: '#064e3b',
+              logging: false,
+              useCORS: false, // 關閉 CORS 以避免加載外部樣式表
+              allowTaint: true,
+              foreignObjectRendering: false, // 使用原生渲染，避免 SVG 相關問題
+              windowWidth: container.offsetWidth,
+              windowHeight: container.offsetHeight
+            });
+          } finally {
+            // 恢復所有樣式表
+            styleSheets.forEach(({ link, disabled }) => {
+              link.disabled = disabled;
+            });
+            
+            // 清理臨時容器
+            document.body.removeChild(container);
+          }
 
           if (canvas && canvas.width > 0 && canvas.height > 0) {
             capturedImage = canvas.toDataURL('image/png');

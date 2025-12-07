@@ -134,19 +134,141 @@ export default function App() {
           });
           
           // Small delay to ensure DOM is fully rendered
-          await new Promise(resolve => setTimeout(resolve, 200));
+          // 增加延遲時間，確保 DOM 渲染完成
+          await new Promise(resolve => setTimeout(resolve, 500));
           
-          const canvas = await window.html2canvas(element, { 
-            scale: 0.8, // Slightly lower scale to save DB space
-            backgroundColor: '#064e3b', // Use the background color instead of transparent
-            logging: false,
-            useCORS: true,
-            allowTaint: true
+          // 創建一個完全獨立的副本，將所有計算樣式轉為內聯樣式
+          // 這樣可以避免 html2canvas 解析 oklab 顏色函數
+          const clonedElement = element.cloneNode(true) as HTMLElement;
+          
+          // 創建一個新的容器，用於隔離樣式
+          const container = document.createElement('div');
+          container.style.position = 'absolute';
+          container.style.left = '-9999px';
+          container.style.top = '0';
+          container.style.width = element.offsetWidth + 'px';
+          container.style.height = element.offsetHeight + 'px';
+          container.style.backgroundColor = '#064e3b';
+          container.id = 'temp-capture-container';
+          document.body.appendChild(container);
+          container.appendChild(clonedElement);
+          
+          // 將所有計算樣式應用到克隆元素的內聯樣式
+          const applyComputedStyles = (original: Element, clone: Element) => {
+            const computed = window.getComputedStyle(original);
+            const cloneEl = clone as HTMLElement;
+            
+            // 獲取所有 CSS 屬性
+            const allProps = [
+              // 顏色相關
+              'color', 'backgroundColor', 
+              'borderColor', 'borderTopColor', 'borderRightColor', 
+              'borderBottomColor', 'borderLeftColor',
+              'outlineColor', 'textDecorationColor',
+              // 邊框相關
+              'borderWidth', 'borderStyle', 'borderRadius',
+              'borderTopWidth', 'borderRightWidth', 'borderBottomWidth', 'borderLeftWidth',
+              'borderTopStyle', 'borderRightStyle', 'borderBottomStyle', 'borderLeftStyle',
+              // 尺寸和位置
+              'width', 'height', 'minWidth', 'minHeight', 'maxWidth', 'maxHeight',
+              'padding', 'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft',
+              'margin', 'marginTop', 'marginRight', 'marginBottom', 'marginLeft',
+              // 字體
+              'fontSize', 'fontFamily', 'fontWeight', 'fontStyle', 'lineHeight',
+              'textAlign', 'textDecoration', 'textTransform',
+              // 顯示
+              'display', 'position', 'top', 'right', 'bottom', 'left',
+              'flexDirection', 'justifyContent', 'alignItems', 'alignContent',
+              'gap', 'gridTemplateColumns', 'gridTemplateRows',
+              // 其他
+              'opacity', 'transform', 'boxShadow', 'textShadow',
+              'overflow', 'overflowX', 'overflowY',
+              'zIndex', 'pointerEvents', 'cursor'
+            ];
+            
+            // 應用所有屬性
+            allProps.forEach(prop => {
+              try {
+                const value = (computed as any)[prop];
+                if (value && 
+                    value !== 'none' &&
+                    value !== 'auto' &&
+                    value !== 'transparent' && 
+                    value !== 'initial' && 
+                    value !== 'inherit' &&
+                    value !== 'rgba(0, 0, 0, 0)' &&
+                    !String(value).includes('oklab') &&
+                    !String(value).includes('oklch')) {
+                  // 跳過某些可能包含函數的值
+                  if (prop === 'transform' || prop === 'boxShadow' || prop === 'textShadow') {
+                    // 這些可能包含函數，需要檢查
+                    if (!String(value).includes('oklab') && !String(value).includes('oklch')) {
+                      cloneEl.style[prop as any] = value;
+                    }
+                  } else {
+                    cloneEl.style[prop as any] = value;
+                  }
+                }
+              } catch (e) {
+                // 忽略無法訪問的屬性
+              }
+            });
+            
+            // 遞歸處理子元素
+            const originalChildren = Array.from(original.children);
+            const cloneChildren = Array.from(clone.children);
+            originalChildren.forEach((origChild, idx) => {
+              if (cloneChildren[idx]) {
+                applyComputedStyles(origChild, cloneChildren[idx]);
+              }
+            });
+          };
+          
+          // 應用樣式到克隆元素及其所有子元素
+          applyComputedStyles(element, clonedElement);
+          
+          // 臨時禁用所有樣式表，強制只使用內聯樣式
+          const styleSheets: Array<{ link: HTMLLinkElement; disabled: boolean }> = [];
+          const allLinks = document.querySelectorAll('link[rel="stylesheet"]');
+          allLinks.forEach((link: Element) => {
+            const linkEl = link as HTMLLinkElement;
+            styleSheets.push({ link: linkEl, disabled: linkEl.disabled });
+            linkEl.disabled = true; // 臨時禁用樣式表
           });
           
-          capturedImage = canvas.toDataURL('image/png');
-          console.log(`[Image Capture] ✅ Successfully captured image, size: ${capturedImage.length} characters`);
-          console.log(`[Image Capture] Image preview: ${capturedImage.substring(0, 50)}...`);
+          // 等待樣式應用完成並強制重繪
+          await new Promise(resolve => setTimeout(resolve, 200));
+          
+          let canvas: HTMLCanvasElement | null = null;
+          try {
+            // 使用容器進行截圖，配置選項以避免解析 oklab 顏色
+            canvas = await window.html2canvas(container, { 
+              scale: 1.0,
+              backgroundColor: '#064e3b',
+              logging: false,
+              useCORS: false, // 關閉 CORS 以避免加載外部樣式表
+              allowTaint: true,
+              foreignObjectRendering: false, // 使用原生渲染，避免 SVG 相關問題
+              windowWidth: container.offsetWidth,
+              windowHeight: container.offsetHeight
+            });
+          } finally {
+            // 恢復所有樣式表
+            styleSheets.forEach(({ link, disabled }) => {
+              link.disabled = disabled;
+            });
+            
+            // 清理臨時容器
+            document.body.removeChild(container);
+          }
+
+          if (canvas && canvas.width > 0 && canvas.height > 0) {
+            capturedImage = canvas.toDataURL('image/png');
+            console.log(`[Image Capture] ✅ Successfully captured image, size: ${capturedImage.length} characters`);
+            console.log(`[Image Capture] Image preview: ${capturedImage.substring(0, 50)}...`);
+          } else {
+            console.error('[Image Capture] ❌ html2canvas created an invalid or empty canvas.');
+          }
         } else {
           console.error('[Image Capture] ❌ Element with id "layout-slots-capture" not found');
           console.error('[Image Capture] Available elements:', document.querySelectorAll('[id*="layout"]'));

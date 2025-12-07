@@ -29,3 +29,9 @@ body {
   box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
 }
 
+/* html2canvas compatibility - disable oklch colors */
+@supports not (color: oklch(50% 0.1 0)) {
+  :root {
+    color-scheme: light dark;
+  }
+}
