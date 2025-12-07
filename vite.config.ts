@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   define: {
-    // Expose process.env for the API key logic in the existing code
-    'process.env': process.env
+    // Safely inject the API KEY string
+    'process.env.API_KEY': JSON.stringify(process.env.API_KEY)
   }
 })
