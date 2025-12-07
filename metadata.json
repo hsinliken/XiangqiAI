@@ -1,0 +1,5 @@
+{
+  "name": "Xiangqi Divination AI",
+  "description": "A traditional Chinese Chess divination system powered by Gemini AI, featuring immersive card flipping and deep I-Ching analysis.",
+  "requestFramePermissions": []
+}
