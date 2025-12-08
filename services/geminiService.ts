@@ -50,17 +50,18 @@ export const analyzeDivination = async (
 ): Promise<DivinationResult> => {
 
   // 1. Generate Gua Code string for the prompt
-  // Order: Center(1), Left(2), Right(3), Top(4), Bottom(5)
+  // Order: Top(4), Left(2), Center(1), Right(3), Bottom(5)
+  // This matches visual reading order, solving the "position shift" issue in DB
   const orderedPositions = [
-    SlotPosition.CENTER, 
-    SlotPosition.LEFT, 
-    SlotPosition.RIGHT, 
-    SlotPosition.TOP, 
+    SlotPosition.TOP,
+    SlotPosition.LEFT,
+    SlotPosition.CENTER,
+    SlotPosition.RIGHT,
     SlotPosition.BOTTOM
   ];
 
   const codeList: string[] = [];
-  
+
   orderedPositions.forEach(pos => {
     const piece = selectedPieces[pos];
     if (piece) {
@@ -87,7 +88,7 @@ export const analyzeDivination = async (
       // Update the image using storage service
       await storage.saveResult(cacheKey, guaCodeString, categoryId, cachedResult, layoutImage);
       console.log(`[Cache] Image updated for ${cacheKey}, size: ${layoutImage.length} characters`);
-      
+
       // Re-fetch the updated result to get the new image URL
       const updatedResult = await storage.getCachedResult(cacheKey);
       if (updatedResult) {
@@ -103,7 +104,7 @@ export const analyzeDivination = async (
   // 4. Prepare Prompt
   // Replace placeholders in the stored System Prompt
   let systemPromptTemplate = await storage.getSystemPrompt();
-  
+
   // Inject User Data
   const finalPrompt = systemPromptTemplate
     .replace('{{USER_INPUT_CODE}}', guaCodeString)
@@ -120,7 +121,7 @@ export const analyzeDivination = async (
           type: Type.OBJECT,
           properties: {
             layout_visual: { type: Type.STRING },
-            pattern_tags: { 
+            pattern_tags: {
               type: Type.ARRAY,
               items: { type: Type.STRING }
             },
