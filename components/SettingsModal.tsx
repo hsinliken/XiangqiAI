@@ -17,7 +17,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, c
   const [prompt, setPrompt] = useState(currentPrompt);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
-  
+
   // DB Records State
   const [records, setRecords] = useState<StoredDivinationRecord[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -36,17 +36,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, c
   // Reset auth on close
   useEffect(() => {
     if (!isOpen) {
-        setIsAuthenticated(false);
-        setPassword('');
+      setIsAuthenticated(false);
+      setPassword('');
     }
   }, [isOpen]);
 
   const handleLogin = () => {
-      if (password === 'admin') {
-          setIsAuthenticated(true);
-      } else {
-          alert("密碼錯誤");
-      }
+    if (password === 'admin') {
+      setIsAuthenticated(true);
+    } else {
+      alert("密碼錯誤");
+    }
   };
 
   const loadRecords = async () => {
@@ -96,43 +96,43 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, c
 
   // Auth Screen
   if (!isAuthenticated) {
-      return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-            <div className="bg-gray-900 border border-yellow-700/50 rounded-lg p-8 w-full max-w-sm shadow-2xl">
-                <h2 className="text-xl font-bold text-yellow-500 mb-4 text-center">後台登入</h2>
-                <input 
-                    type="password"
-                    placeholder="輸入管理密碼 (admin)"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-gray-800 border border-gray-700 rounded p-2 text-white mb-4 focus:border-yellow-500 outline-none"
-                    onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-                />
-                <div className="flex gap-2">
-                    <button onClick={onClose} className="flex-1 py-2 text-gray-400 hover:text-white">取消</button>
-                    <button onClick={handleLogin} className="flex-1 py-2 bg-yellow-700 hover:bg-yellow-600 text-white rounded font-bold">登入</button>
-                </div>
-            </div>
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div className="bg-gray-900 border border-yellow-700/50 rounded-lg p-8 w-full max-w-sm shadow-2xl">
+          <h2 className="text-xl font-bold text-yellow-500 mb-4 text-center">後台登入</h2>
+          <input
+            type="password"
+            placeholder="輸入管理密碼 (admin)"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full bg-gray-800 border border-gray-700 rounded p-2 text-white mb-4 focus:border-yellow-500 outline-none"
+            onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+          />
+          <div className="flex gap-2">
+            <button onClick={onClose} className="flex-1 py-2 text-gray-400 hover:text-white">取消</button>
+            <button onClick={handleLogin} className="flex-1 py-2 bg-yellow-700 hover:bg-yellow-600 text-white rounded font-bold">登入</button>
+          </div>
         </div>
-      );
+      </div>
+    );
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
       <div className="bg-gray-900 border border-yellow-700/50 rounded-lg w-full max-w-5xl flex flex-col h-[85vh] shadow-2xl overflow-hidden">
-        
+
         {/* Header */}
         <div className="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-900">
           <div className="flex gap-6 items-center">
             <h2 className="text-xl font-bold text-yellow-500">後台管理中心</h2>
             <div className="flex gap-1 bg-gray-800 rounded p-1">
-              <button 
+              <button
                 onClick={() => setActiveTab('SETTINGS')}
                 className={`px-4 py-1 rounded text-sm transition-colors ${activeTab === 'SETTINGS' ? 'bg-yellow-700 text-white' : 'text-gray-400 hover:text-white'}`}
               >
                 系統設定
               </button>
-              <button 
+              <button
                 onClick={() => setActiveTab('RECORDS')}
                 className={`px-4 py-1 rounded text-sm transition-colors ${activeTab === 'RECORDS' ? 'bg-yellow-700 text-white' : 'text-gray-400 hover:text-white'}`}
               >
@@ -142,10 +142,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, c
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-white text-2xl leading-none">&times;</button>
         </div>
-        
+
         {/* Content */}
         <div className="flex-1 overflow-y-auto bg-gray-950/50">
-          
+
           {/* TAB: SYSTEM SETTINGS */}
           {activeTab === 'SETTINGS' && (
             <div className="p-6 h-full flex flex-col">
@@ -153,26 +153,45 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, c
                 <p className="font-bold mb-1">⚠️ 重要規則變數</p>
                 <p>請務必保留 <code className="text-white bg-black/40 px-1 rounded">{'{{USER_INPUT_CODE}}'}</code> 與 <code className="text-white bg-black/40 px-1 rounded">{'{{USER_INPUT_CATEGORY}}'}</code> 標籤，系統將自動填入棋局代碼與問題類別。</p>
               </div>
-              <textarea 
+              <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 className="flex-1 w-full bg-black text-green-400 font-mono text-sm p-4 rounded border border-gray-700 focus:border-yellow-500 focus:outline-none resize-none"
                 spellCheck={false}
               />
-               <div className="mt-4 flex justify-between items-center">
-                  <button 
-                    onClick={handleResetPrompt}
-                    className="text-red-400 text-sm hover:text-red-300 underline"
+              <div className="mt-4 flex justify-between items-center">
+                <button
+                  onClick={handleResetPrompt}
+                  className="text-red-400 text-sm hover:text-red-300 underline"
+                >
+                  恢復預設
+                </button>
+                <button
+                  onClick={() => { onSave(prompt); onClose(); }}
+                  className="px-6 py-2 bg-yellow-700 hover:bg-yellow-600 text-white rounded font-bold shadow-lg"
+                >
+                  儲存 Prompt 設定
+                </button>
+              </div>
+
+              {/* DB Connection Test */}
+              <div className="mt-8 pt-4 border-t border-gray-800">
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="text-yellow-500 font-bold text-sm">資料庫狀態檢查</h3>
+                  <button
+                    onClick={async () => {
+                      const res = await storage.checkConnection();
+                      alert(res.message);
+                    }}
+                    className="text-xs border border-gray-600 px-3 py-1 rounded text-gray-400 hover:text-white hover:border-gray-400 transition-colors"
                   >
-                    恢復預設
+                    測試連線
                   </button>
-                  <button 
-                    onClick={() => { onSave(prompt); onClose(); }}
-                    className="px-6 py-2 bg-yellow-700 hover:bg-yellow-600 text-white rounded font-bold shadow-lg"
-                  >
-                    儲存 Prompt 設定
-                  </button>
-               </div>
+                </div>
+                <p className="text-xs text-gray-500">
+                  若發現資料沒有存入 Firebase (只存在 Local)，請點擊測試連線確認權限設定。
+                </p>
+              </div>
             </div>
           )}
 
@@ -180,60 +199,60 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, c
           {activeTab === 'RECORDS' && (
             <div className="p-0 h-full overflow-hidden flex flex-col">
               {editingId ? (
-                 // --- EDIT MODE ---
-                 <div className="p-6 flex flex-col gap-4 overflow-y-auto">
-                    <h3 className="text-yellow-400 font-bold border-b border-gray-700 pb-2">編輯紀錄 (ID: {editingId.substring(0, 15)}...)</h3>
-                    
-                    {editForm.layout_image && (
-                      <div className="flex justify-center my-2 p-2 bg-black/30 rounded border border-gray-700">
-                        <img src={editForm.layout_image} alt="Gua Layout" className="max-h-48 rounded shadow-md" />
-                      </div>
-                    )}
+                // --- EDIT MODE ---
+                <div className="p-6 flex flex-col gap-4 overflow-y-auto">
+                  <h3 className="text-yellow-400 font-bold border-b border-gray-700 pb-2">編輯紀錄 (ID: {editingId.substring(0, 15)}...)</h3>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-gray-400 text-xs mb-1">格局名稱</label>
-                        <input 
-                          type="text" 
-                          value={editForm.hexagram_name || ''}
-                          onChange={e => setEditForm(prev => ({...prev, hexagram_name: e.target.value}))}
-                          className="w-full bg-gray-800 border border-gray-700 rounded p-2 text-white focus:border-yellow-500 outline-none"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-gray-400 text-xs mb-1">吉凶</label>
-                        <input 
-                          type="text" 
-                          value={editForm.luck_level || ''}
-                          onChange={e => setEditForm(prev => ({...prev, luck_level: e.target.value}))}
-                          className="w-full bg-gray-800 border border-gray-700 rounded p-2 text-white focus:border-yellow-500 outline-none"
-                        />
-                      </div>
+                  {editForm.layout_image && (
+                    <div className="flex justify-center my-2 p-2 bg-black/30 rounded border border-gray-700">
+                      <img src={editForm.layout_image} alt="Gua Layout" className="max-h-48 rounded shadow-md" />
                     </div>
+                  )}
 
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-gray-400 text-xs mb-1">卦象分析</label>
-                      <textarea 
-                        value={editForm.analysis || ''}
-                        onChange={e => setEditForm(prev => ({...prev, analysis: e.target.value}))}
-                        className="w-full h-32 bg-gray-800 border border-gray-700 rounded p-2 text-white focus:border-yellow-500 outline-none"
+                      <label className="block text-gray-400 text-xs mb-1">格局名稱</label>
+                      <input
+                        type="text"
+                        value={editForm.hexagram_name || ''}
+                        onChange={e => setEditForm(prev => ({ ...prev, hexagram_name: e.target.value }))}
+                        className="w-full bg-gray-800 border border-gray-700 rounded p-2 text-white focus:border-yellow-500 outline-none"
                       />
                     </div>
-
                     <div>
-                      <label className="block text-gray-400 text-xs mb-1">神諭建議</label>
-                      <textarea 
-                        value={editForm.advice || ''}
-                        onChange={e => setEditForm(prev => ({...prev, advice: e.target.value}))}
-                        className="w-full h-24 bg-gray-800 border border-gray-700 rounded p-2 text-white focus:border-yellow-500 outline-none"
+                      <label className="block text-gray-400 text-xs mb-1">吉凶</label>
+                      <input
+                        type="text"
+                        value={editForm.luck_level || ''}
+                        onChange={e => setEditForm(prev => ({ ...prev, luck_level: e.target.value }))}
+                        className="w-full bg-gray-800 border border-gray-700 rounded p-2 text-white focus:border-yellow-500 outline-none"
                       />
                     </div>
+                  </div>
 
-                    <div className="flex gap-3 justify-end pt-4">
-                      <button onClick={handleCancelEdit} className="px-4 py-2 text-gray-400 hover:text-white">取消</button>
-                      <button onClick={handleSaveEdit} className="px-4 py-2 bg-green-700 hover:bg-green-600 text-white rounded">確認更新</button>
-                    </div>
-                 </div>
+                  <div>
+                    <label className="block text-gray-400 text-xs mb-1">卦象分析</label>
+                    <textarea
+                      value={editForm.analysis || ''}
+                      onChange={e => setEditForm(prev => ({ ...prev, analysis: e.target.value }))}
+                      className="w-full h-32 bg-gray-800 border border-gray-700 rounded p-2 text-white focus:border-yellow-500 outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-gray-400 text-xs mb-1">神諭建議</label>
+                    <textarea
+                      value={editForm.advice || ''}
+                      onChange={e => setEditForm(prev => ({ ...prev, advice: e.target.value }))}
+                      className="w-full h-24 bg-gray-800 border border-gray-700 rounded p-2 text-white focus:border-yellow-500 outline-none"
+                    />
+                  </div>
+
+                  <div className="flex gap-3 justify-end pt-4">
+                    <button onClick={handleCancelEdit} className="px-4 py-2 text-gray-400 hover:text-white">取消</button>
+                    <button onClick={handleSaveEdit} className="px-4 py-2 bg-green-700 hover:bg-green-600 text-white rounded">確認更新</button>
+                  </div>
+                </div>
               ) : (
                 // --- TABLE MODE ---
                 <div className="flex-1 overflow-auto">
@@ -256,7 +275,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, c
                         </tr>
                       ) : (
                         records.map(r => {
-                          const date = new Date(r.created_at).toLocaleString('zh-TW', { month: '2-digit', day: '2-digit', hour: '2-digit', minute:'2-digit' });
+                          const date = new Date(r.created_at).toLocaleString('zh-TW', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
                           return (
                             <tr key={r._id} className="border-b border-gray-800 hover:bg-white/5 transition-colors">
                               <td className="p-3 text-sm text-gray-400 font-mono">{date}</td>
@@ -276,22 +295,21 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, c
                               <td className="p-3 text-xs text-gray-500 font-mono">{r.gua_code}</td>
                               <td className="p-3 text-sm font-bold text-white">{r.hexagram_name}</td>
                               <td className="p-3 text-sm">
-                                <span className={`px-2 py-0.5 rounded text-xs border ${
-                                  r.luck_level.includes('吉') ? 'bg-red-900/40 border-red-800 text-red-200' : 
-                                  'bg-gray-800 border-gray-700 text-gray-300'
-                                }`}>
+                                <span className={`px-2 py-0.5 rounded text-xs border ${r.luck_level.includes('吉') ? 'bg-red-900/40 border-red-800 text-red-200' :
+                                    'bg-gray-800 border-gray-700 text-gray-300'
+                                  }`}>
                                   {r.luck_level}
                                 </span>
                               </td>
                               <td className="p-3 flex justify-center gap-2">
-                                <button 
+                                <button
                                   onClick={() => handleEdit(r)}
-                                  className="p-1.5 text-blue-400 hover:bg-blue-900/30 rounded" 
+                                  className="p-1.5 text-blue-400 hover:bg-blue-900/30 rounded"
                                   title="編輯"
                                 >
                                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                 </button>
-                                <button 
+                                <button
                                   onClick={() => handleDelete(r._id)}
                                   className="p-1.5 text-red-400 hover:bg-red-900/30 rounded"
                                   title="刪除"

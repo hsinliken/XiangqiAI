@@ -9,7 +9,7 @@ const isFirebaseConfigured = async () => {
     if (!import.meta.env.VITE_FIREBASE_API_KEY || !import.meta.env.VITE_FIREBASE_PROJECT_ID) {
       return false;
     }
-    
+
     // Try to import and check if db is initialized
     const firebaseModule = await import('./firebase');
     // Access db through a getter function if needed, or check if it exists
@@ -75,10 +75,10 @@ export const storage = {
     try {
       const rawData = localStorage.getItem(COLLECTIONS.DIVINATION_RESULTS);
       if (!rawData) return null;
-      
+
       const db = JSON.parse(rawData);
       const record = db[uniqueKey];
-      
+
       if (record) {
         console.log(`[LocalStorage] Cache Hit for ${uniqueKey}`);
         return record;
@@ -104,7 +104,7 @@ export const storage = {
     try {
       const rawData = localStorage.getItem(COLLECTIONS.DIVINATION_RESULTS);
       const db = rawData ? JSON.parse(rawData) : {};
-      
+
       // 模擬 MongoDB Document Schema
       const newRecord: StoredDivinationRecord = {
         ...result,
@@ -141,7 +141,7 @@ export const storage = {
       if (!rawData) return [];
       const db = JSON.parse(rawData);
       // Convert map to array and sort by date descending
-      return Object.values(db).sort((a: any, b: any) => 
+      return Object.values(db).sort((a: any, b: any) =>
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       ) as StoredDivinationRecord[];
     } catch (e) {
@@ -158,7 +158,7 @@ export const storage = {
     try {
       const rawData = localStorage.getItem(COLLECTIONS.DIVINATION_RESULTS);
       const db = rawData ? JSON.parse(rawData) : {};
-      
+
       if (db[id]) {
         db[id] = { ...db[id], ...updates };
         localStorage.setItem(COLLECTIONS.DIVINATION_RESULTS, JSON.stringify(db));
@@ -178,7 +178,7 @@ export const storage = {
     try {
       const rawData = localStorage.getItem(COLLECTIONS.DIVINATION_RESULTS);
       const db = rawData ? JSON.parse(rawData) : {};
-      
+
       if (db[id]) {
         delete db[id];
         localStorage.setItem(COLLECTIONS.DIVINATION_RESULTS, JSON.stringify(db));
@@ -187,5 +187,12 @@ export const storage = {
     } catch (e) {
       console.error("Error deleting record", e);
     }
+  },
+
+  checkConnection: async (): Promise<{ success: boolean; message: string }> => {
+    if (await isFirebaseConfigured()) {
+      return await firebaseService.checkConnection();
+    }
+    return { success: false, message: 'Firebase Not Configured (Local Mode)' };
   }
 };

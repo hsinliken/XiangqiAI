@@ -10,7 +10,7 @@ let storage: any = null;
 
 const initFirebase = () => {
   if (app) return; // Already initialized
-  
+
   const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
     authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -56,32 +56,32 @@ export const uploadImageToStorage = async (imageData: string, uniqueKey: string)
       console.warn('[Firebase Storage] No image data provided');
       return null;
     }
-    
+
     if (!storage) {
       console.warn('[Firebase Storage] Storage not initialized');
       return null;
     }
-    
+
     // Convert base64 to blob if needed, or upload directly as base64
     const imageRef = ref(storage, `divination_images/${uniqueKey}.png`);
-    
+
     // Upload base64 string directly
     await uploadString(imageRef, imageData, 'data_url');
-    
+
     // Get download URL
     const downloadURL = await getDownloadURL(imageRef);
     console.log(`[Firebase Storage] Image uploaded: ${downloadURL}`);
     return downloadURL;
   } catch (error: any) {
     console.error('[Firebase Storage] Error uploading image:', error);
-    
+
     // Provide helpful error messages
     if (error?.code === 'storage/unauthorized') {
       console.error('[Firebase Storage] 权限被拒绝。请检查 Storage 安全规则。');
     } else if (error?.code === 'storage/quota-exceeded') {
       console.error('[Firebase Storage] 存储配额已满。');
     }
-    
+
     return null;
   }
 };
@@ -100,9 +100,9 @@ export const saveDivinationResult = async (
     if (!db) {
       throw new Error('Firebase not initialized');
     }
-    
+
     let imageUrl: string | undefined = undefined;
-    
+
     // Upload image to Firebase Storage if provided
     if (layoutImage) {
       console.log(`[Firebase] Attempting to upload image for ${uniqueKey}, image size: ${layoutImage.length} characters`);
@@ -115,7 +115,7 @@ export const saveDivinationResult = async (
     } else {
       console.log(`[Firebase] No layoutImage provided for ${uniqueKey}`);
     }
-    
+
     // Build record object, only include layout_image if imageUrl exists
     // Firestore doesn't accept undefined values
     const record: any = {
@@ -126,7 +126,7 @@ export const saveDivinationResult = async (
       category: category,
       created_at: new Date().toISOString()
     };
-    
+
     // Only add layout_image if we have a URL
     if (imageUrl) {
       record.layout_image = imageUrl; // Store the Firebase Storage URL instead of base64
@@ -134,15 +134,15 @@ export const saveDivinationResult = async (
     } else {
       console.log(`[Firebase] No imageUrl to add to record`);
     }
-    
+
     const docRef = doc(db, COLLECTIONS.DIVINATION_RESULTS, uniqueKey);
     console.log(`[Firebase] Saving record to Firestore: ${uniqueKey}`);
-    console.log(`[Firebase] Record data:`, { 
+    console.log(`[Firebase] Record data:`, {
       has_layout_image: !!record.layout_image,
       layout_image_preview: record.layout_image ? record.layout_image.substring(0, 50) + '...' : 'none'
     });
     await setDoc(docRef, record);
-    
+
     if (imageUrl) {
       console.log(`[Firebase] ✅ Result saved for ${uniqueKey} with image URL: ${imageUrl}`);
     } else {
@@ -150,7 +150,7 @@ export const saveDivinationResult = async (
     }
   } catch (error: any) {
     console.error('[Firebase] Error saving result:', error);
-    
+
     // Provide more helpful error messages
     if (error?.code === 'permission-denied') {
       throw new Error('Firebase 权限被拒绝。请检查 Firestore 安全规则是否允许写入。');
@@ -159,7 +159,7 @@ export const saveDivinationResult = async (
     } else if (error?.message?.includes('Firebase not initialized')) {
       throw new Error('Firebase 未初始化。请检查环境变量配置。');
     }
-    
+
     throw error;
   }
 };
@@ -172,16 +172,16 @@ export const getCachedResult = async (uniqueKey: string): Promise<StoredDivinati
     if (!db) {
       return null;
     }
-    
+
     const docRef = doc(db, COLLECTIONS.DIVINATION_RESULTS, uniqueKey);
     const docSnap = await getDoc(docRef);
-    
+
     if (docSnap.exists()) {
       const data = docSnap.data() as StoredDivinationRecord;
       console.log(`[Firebase] Cache Hit for ${uniqueKey}`);
       return data;
     }
-    
+
     return null;
   } catch (error) {
     console.error('[Firebase] Error getting cached result:', error);
@@ -197,13 +197,13 @@ export const getAllResults = async (): Promise<StoredDivinationRecord[]> => {
     if (!db) {
       return [];
     }
-    
+
     const q = query(
       collection(db, COLLECTIONS.DIVINATION_RESULTS),
       orderBy('created_at', 'desc')
     );
     const querySnapshot = await getDocs(q);
-    
+
     return querySnapshot.docs.map(doc => doc.data() as StoredDivinationRecord);
   } catch (error) {
     console.error('[Firebase] Error getting all results:', error);
@@ -219,7 +219,7 @@ export const updateResult = async (id: string, updates: Partial<DivinationResult
     if (!db) {
       throw new Error('Firebase not initialized');
     }
-    
+
     // Remove undefined values - Firestore doesn't accept undefined
     const cleanUpdates: any = {};
     Object.keys(updates).forEach(key => {
@@ -228,13 +228,13 @@ export const updateResult = async (id: string, updates: Partial<DivinationResult
         cleanUpdates[key] = value;
       }
     });
-    
+
     // If no valid updates, return early
     if (Object.keys(cleanUpdates).length === 0) {
       console.log(`[Firebase] No valid updates for ${id}, skipping`);
       return;
     }
-    
+
     const docRef = doc(db, COLLECTIONS.DIVINATION_RESULTS, id);
     await updateDoc(docRef, cleanUpdates);
     console.log(`[Firebase] Record updated: ${id}`);
@@ -252,7 +252,7 @@ export const deleteResult = async (id: string): Promise<void> => {
     if (!db) {
       throw new Error('Firebase not initialized');
     }
-    
+
     const docRef = doc(db, COLLECTIONS.DIVINATION_RESULTS, id);
     await deleteDoc(docRef);
     console.log(`[Firebase] Record deleted: ${id}`);
@@ -270,14 +270,14 @@ export const getSystemPrompt = async (): Promise<string> => {
     if (!db) {
       return '';
     }
-    
+
     const docRef = doc(db, COLLECTIONS.SYSTEM_SETTINGS, 'prompt');
     const docSnap = await getDoc(docRef);
-    
+
     if (docSnap.exists()) {
       return docSnap.data().value || '';
     }
-    
+
     return '';
   } catch (error) {
     console.error('[Firebase] Error getting system prompt:', error);
@@ -293,7 +293,7 @@ export const saveSystemPrompt = async (prompt: string): Promise<void> => {
     if (!db) {
       throw new Error('Firebase not initialized');
     }
-    
+
     const docRef = doc(db, COLLECTIONS.SYSTEM_SETTINGS, 'prompt');
     await setDoc(docRef, { value: prompt });
     console.log('[Firebase] System prompt saved');
@@ -303,3 +303,29 @@ export const saveSystemPrompt = async (prompt: string): Promise<void> => {
   }
 };
 
+
+/**
+ * Check connection to Firestore
+ */
+export const checkConnection = async (): Promise<{ success: boolean; message: string }> => {
+  try {
+    if (!db) {
+      return { success: false, message: 'Firebase Init Failed (db is null)' };
+    }
+
+    // Try to read a non-existent doc to test permission/connection
+    const docRef = doc(db, COLLECTIONS.SYSTEM_SETTINGS, '_connection_test_');
+    try {
+      await getDoc(docRef);
+      return { success: true, message: 'Connected to Firestore' };
+    } catch (e: any) {
+      if (e.code === 'permission-denied') {
+        // Write permission check?
+        return { success: false, message: 'Permission Denied (Check Rules)' };
+      }
+      throw e;
+    }
+  } catch (error: any) {
+    return { success: false, message: error.message || String(error) };
+  }
+};
