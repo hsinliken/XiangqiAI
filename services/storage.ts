@@ -5,8 +5,18 @@ import * as firebaseService from "./firebase";
 // Check if Firebase is configured and initialized
 const isFirebaseConfigured = async () => {
   try {
+    const apiKey = import.meta.env.VITE_FIREBASE_API_KEY;
+    const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID;
+
+    console.log('[Storage Check] Checking Firebase Config:', {
+      hasApiKey: !!apiKey,
+      hasProjectId: !!projectId,
+      apiKeyStart: apiKey ? apiKey.substring(0, 5) : 'N/A'
+    });
+
     // Check environment variables first
-    if (!import.meta.env.VITE_FIREBASE_API_KEY || !import.meta.env.VITE_FIREBASE_PROJECT_ID) {
+    if (!apiKey || !projectId) {
+      console.warn('[Storage Check] Missing API Key or Project ID');
       return false;
     }
 
@@ -14,6 +24,7 @@ const isFirebaseConfigured = async () => {
     const firebaseModule = await import('./firebase');
     // Access db through a getter function if needed, or check if it exists
     // Since db is exported, we can check it directly after import
+    console.log('[Storage Check] Firebase Module Imported');
     return true; // If import succeeds and env vars are set, assume it's configured
   } catch (e) {
     return false;
