@@ -6,6 +6,7 @@ import { storage } from './services/storage';
 import { ChessPieceCard } from './components/ChessPieceCard';
 import { LayoutSlots } from './components/LayoutSlots';
 import { SettingsModal } from './components/SettingsModal';
+import { ChatInterface } from './components/ChatInterface';
 
 // Extend window for html2canvas
 declare global {
@@ -427,7 +428,7 @@ export default function App() {
                   </div>
                   <h2 className="text-4xl md:text-5xl font-bold text-yellow-300 font-serif mb-2 tracking-widest drop-shadow-md">{result.hexagram_name}</h2>
                   <span className={`text-xl font-bold px-3 py-1 rounded shadow-sm inline-block mt-2 ${result.luck_level.includes('吉') ? 'text-red-100 bg-red-900/60 border border-red-400/30' :
-                      result.luck_level.includes('凶') ? 'text-gray-200 bg-gray-700/60 border border-gray-400/30' : 'text-blue-100 bg-blue-900/60 border border-blue-400/30'
+                    result.luck_level.includes('凶') ? 'text-gray-200 bg-gray-700/60 border border-gray-400/30' : 'text-blue-100 bg-blue-900/60 border border-blue-400/30'
                     }`}>
                     {result.luck_level}
                   </span>
@@ -453,6 +454,11 @@ export default function App() {
                     再求一卦
                   </button>
                 </div>
+              </div>
+
+              {/* Chat Interface */}
+              <div className="mt-8">
+                <ChatInterface divinationResult={result} />
               </div>
             </div>
           )}

@@ -181,3 +181,57 @@ export const analyzeDivination = async (
     };
   }
 };
+
+export const chatWithDivinationAI = async (
+  divinationResult: DivinationResult,
+  history: { role: 'user' | 'model', text: string }[],
+  userMessage: string
+): Promise<string> => {
+  try {
+    const ai = getAI();
+
+    // Construct the system instruction (persona and context)
+    const context = `
+你是一位精通《象棋卜卦》的智慧長者與大師。
+你剛剛為用戶進行了卜卦，結果如下：
+- 卦名：${divinationResult.hexagram_name}
+- 吉凶：${divinationResult.luck_level}
+- 分析：${divinationResult.analysis}
+- 建議：${divinationResult.advice}
+
+用戶現在對這個結果有疑問或想深入了解。
+請以日常口語、親切但富有智慧的方式回答用戶的問題。
+不要過於嚴肅，像是一位以此為樂、樂於助人的老朋友或長者。
+回答請簡潔有力，切中要害，不要長篇大論。
+`.trim();
+
+    // Prepare contents history
+    const contents = [
+      ...history.map(msg => ({
+        role: msg.role,
+        parts: [{ text: msg.text }]
+      })),
+      {
+        role: 'user',
+        parts: [{ text: userMessage }]
+      }
+    ];
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      config: {
+        systemInstruction: context,
+      },
+      contents: contents
+    });
+
+    const text = response.text;
+    if (!text) throw new Error("No response from AI");
+
+    return text;
+
+  } catch (error) {
+    console.error("Gemini Chat API Error:", error);
+    return "抱歉，神諭暫時無法連結，請稍後再試。";
+  }
+};
