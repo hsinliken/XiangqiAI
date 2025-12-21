@@ -47,6 +47,7 @@ export interface StoredDivinationRecord extends DivinationResult {
   unique_key: string; // PRD: 117-227-317-427-527_WORK
   gua_code: string;   // PRD: 117 227 ...
   category: string;
+  gender?: string;
   created_at: string;
   layout_image?: string; // Base64 string of the Nine-Grid visual
 }

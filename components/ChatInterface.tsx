@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { DivinationResult } from '../types';
-import { chatWithDivinationAI } from '../services/geminiService';
+import { chatWithDivinationAI } from '../services/geminiService_fixed';
 
 interface ChatInterfaceProps {
     divinationResult: DivinationResult;

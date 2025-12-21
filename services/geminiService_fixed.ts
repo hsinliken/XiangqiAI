@@ -236,4 +236,3 @@ export const chatWithDivinationAI = async (
     return "抱歉，神諭暫時無法連結，請稍後再試。";
   }
 };
-};

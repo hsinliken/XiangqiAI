@@ -71,11 +71,13 @@ export const storage = {
    * PRD 規則: "117-227-317-427-527_WORK"
    * @param guaCodeString - 空格分隔的代碼字串 (e.g. "117 227 ...")
    * @param category - 類別代碼 (e.g. "WORK")
+  * @param gender - 可選的姓別標籤 (e.g. "男" | "女" | "其他")
    */
-  generateCacheKey: (guaCodeString: string, category: string): string => {
+  generateCacheKey: (guaCodeString: string, category: string, gender?: string): string => {
     // Replace spaces with hyphens for the key
     const formattedCode = guaCodeString.replace(/\s+/g, '-');
-    return `${formattedCode}_${category}`;
+    const g = gender ? gender : 'ANY';
+    return `${formattedCode}_${category}_${g}`;
   },
 
   getCachedResult: async (uniqueKey: string): Promise<StoredDivinationRecord | null> => {
@@ -101,10 +103,10 @@ export const storage = {
     }
   },
 
-  saveResult: async (uniqueKey: string, guaCode: string, category: string, result: DivinationResult, layoutImage?: string): Promise<void> => {
+  saveResult: async (uniqueKey: string, guaCode: string, category: string, result: DivinationResult, layoutImage?: string, gender?: string): Promise<void> => {
     if (await isFirebaseConfigured()) {
       try {
-        await firebaseService.saveDivinationResult(uniqueKey, guaCode, category, result, layoutImage);
+        await firebaseService.saveDivinationResult(uniqueKey, guaCode, category, result, layoutImage, gender);
         return;
       } catch (error: any) {
         console.error('[Storage] Firebase save failed, falling back to localStorage:', error);
@@ -123,6 +125,7 @@ export const storage = {
         unique_key: uniqueKey,
         gua_code: guaCode,
         category: category,
+        gender: gender,
         created_at: new Date().toISOString(),
         layout_image: layoutImage
       };

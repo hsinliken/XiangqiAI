@@ -94,7 +94,8 @@ export const saveDivinationResult = async (
   guaCode: string,
   category: string,
   result: DivinationResult,
-  layoutImage?: string
+  layoutImage?: string,
+  gender?: string
 ): Promise<void> => {
   try {
     if (!db) {
@@ -124,6 +125,7 @@ export const saveDivinationResult = async (
       unique_key: uniqueKey,
       gua_code: guaCode,
       category: category,
+      gender: gender,
       created_at: new Date().toISOString()
     };
 

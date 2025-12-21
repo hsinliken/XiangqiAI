@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ChessPiece, GamePhase, SlotPosition, DivinationResult, PromptSettings } from './types';
 import { INITIAL_DECK, CATEGORIES } from './constants';
-import { analyzeDivination } from './services/geminiService';
+import { analyzeDivination } from './services/geminiService_fixed';
 import { storage } from './services/storage';
 import { ChessPieceCard } from './components/ChessPieceCard';
 import { LayoutSlots } from './components/LayoutSlots';
@@ -49,6 +49,7 @@ export default function App() {
   // Track IDs of flipped cards on the board
   const [flippedIds, setFlippedIds] = useState<Set<string>>(new Set());
   const [category, setCategory] = useState<{ id: string, label: string } | null>(null);
+  const [gender, setGender] = useState<string | null>(null);
   const [result, setResult] = useState<DivinationResult | null>(null);
 
   // Admin/Settings
@@ -118,6 +119,11 @@ export default function App() {
   };
 
   const handleCategorySelect = async (cat: typeof CATEGORIES[0]) => {
+    if (!gender) {
+      alert('請先選擇姓別 (男 / 女 / 其他)');
+      return;
+    }
+
     setCategory(cat);
 
     // Capture visual representation using html2canvas BEFORE changing phase
@@ -301,7 +307,7 @@ export default function App() {
     setPhase(GamePhase.ANALYZING);
 
     // Call API (Service handles caching and prompt loading internally)
-    const res = await analyzeDivination(selectedPieces, cat.label, cat.id, capturedImage);
+    const res = await analyzeDivination(selectedPieces, cat.label, cat.id, capturedImage, gender || undefined);
     setResult(res);
     setPhase(GamePhase.RESULT);
   };
@@ -392,12 +398,30 @@ export default function App() {
           {phase === GamePhase.CATEGORY_SELECT && (
             <div className="w-full max-w-lg mx-auto mt-4 animate-fade-in-up">
               <h2 className="text-2xl text-center text-white mb-6 font-serif">請選擇您想詢問的類別</h2>
+              <div className="flex flex-col items-center gap-2 mb-4">
+                <div className="text-sm text-yellow-200 font-medium">姓別</div>
+                <div className="flex justify-center gap-4">
+                <label className="inline-flex items-center gap-2 text-sm">
+                  <input type="radio" name="gender" value="男" checked={gender==="男"} onChange={() => setGender('男')} />
+                  <span className="text-white/90">男</span>
+                </label>
+                <label className="inline-flex items-center gap-2 text-sm">
+                  <input type="radio" name="gender" value="女" checked={gender==="女"} onChange={() => setGender('女')} />
+                  <span className="text-white/90">女</span>
+                </label>
+                <label className="inline-flex items-center gap-2 text-sm">
+                  <input type="radio" name="gender" value="其他" checked={gender==="其他"} onChange={() => setGender('其他')} />
+                  <span className="text-white/90">其他</span>
+                </label>
+                </div>
+              </div>
               <div className="grid grid-cols-1 gap-4">
                 {CATEGORIES.map(cat => (
                   <button
                     key={cat.id}
                     onClick={() => handleCategorySelect(cat)}
                     className="p-4 bg-white/10 backdrop-blur-sm border border-yellow-200/30 rounded-lg hover:bg-white/20 hover:border-yellow-300 transition-all flex items-center gap-4 group shadow-md"
+                    disabled={!gender}
                   >
                     <span className="text-2xl group-hover:scale-110 transition-transform">{cat.icon}</span>
                     <span className="text-lg text-yellow-50 font-serif tracking-wider">{cat.label}</span>

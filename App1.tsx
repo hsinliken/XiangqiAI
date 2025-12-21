@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ChessPiece, GamePhase, SlotPosition, DivinationResult, PromptSettings } from './types';
 import { INITIAL_DECK, CATEGORIES } from './constants';
-import { analyzeDivination } from './services/geminiService';
+import { analyzeDivination } from './services/geminiService_fixed';
 import { storage } from './services/storage';
 import { ChessPieceCard } from './components/ChessPieceCard';
 import { LayoutSlots } from './components/LayoutSlots';
