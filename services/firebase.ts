@@ -47,6 +47,61 @@ const COLLECTIONS = {
   SYSTEM_SETTINGS: 'system_settings'
 };
 
+// Conversation logs
+COLLECTIONS.AI_CONVERSATIONS = 'ai_conversations';
+
+/**
+ * Save AI conversation record to Firestore
+ * If conversationId is not provided, generate a UUID-like id
+ */
+export const saveConversationRecord = async (
+  conversationId: string | undefined,
+  payload: {
+    messages: Array<{ role: string; text: string }>;
+    divination?: any;
+    session?: string;
+    user?: string;
+    metadata?: Record<string, any>;
+  }
+): Promise<string> => {
+  try {
+    if (!db) throw new Error('Firebase not initialized');
+
+    // Generate id if not provided
+    const id = conversationId || (typeof crypto !== 'undefined' && (crypto as any).randomUUID ? (crypto as any).randomUUID() : `${Date.now()}_${Math.floor(Math.random() * 1e6)}`);
+
+    // Remove undefined fields (Firestore rejects undefined values)
+    const cleanPayload = (obj: any): any => {
+      if (obj === null || obj === undefined) return obj;
+      if (Array.isArray(obj)) return obj.map(cleanPayload);
+      if (typeof obj === 'object') {
+        const out: any = {};
+        Object.keys(obj).forEach(k => {
+          const v = obj[k];
+          if (v !== undefined) {
+            out[k] = cleanPayload(v);
+          }
+        });
+        return out;
+      }
+      return obj;
+    };
+
+    const record = {
+      ...cleanPayload(payload),
+      created_at: new Date().toISOString()
+    } as any;
+
+    const docRef = doc(db, COLLECTIONS.AI_CONVERSATIONS, id);
+    await setDoc(docRef, record);
+    console.log(`[Firebase] Conversation saved: ${id} (messages: ${payload.messages?.length || 0})`);
+    return id;
+  } catch (error: any) {
+    console.error('[Firebase] Error saving conversation:', error);
+    throw error;
+  }
+};
+
 /**
  * Upload image to Firebase Storage and return the download URL
  */

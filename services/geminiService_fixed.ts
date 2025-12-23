@@ -186,7 +186,8 @@ export const analyzeDivination = async (
 export const chatWithDivinationAI = async (
   divinationResult: DivinationResult,
   history: { role: 'user' | 'model', text: string }[],
-  userMessage: string
+  userMessage: string,
+  conversationId?: string
 ): Promise<string> => {
   try {
     const ai = getAI();
@@ -228,6 +229,26 @@ export const chatWithDivinationAI = async (
 
     const text = response.text;
     if (!text) throw new Error("No response from AI");
+
+    // Persist conversation (history + user message + model response)
+    try {
+      const messagesForSave = contents.map(c => ({ role: (c.role as string) || 'user', text: (c.parts || []).map((p: any) => p.text).join(' ') }));
+      // Append model response as last message
+      messagesForSave.push({ role: 'model', text });
+
+      // Non-blocking persistence: await but don't fail the chat if saving errors
+      try {
+        await storage.saveConversation(conversationId, {
+          messages: messagesForSave,
+          divination: divinationResult || null,
+          session: undefined
+        });
+      } catch (e) {
+        console.error('[Chat] Failed to save conversation:', e);
+      }
+    } catch (e) {
+      console.error('[Chat] Error preparing conversation payload:', e);
+    }
 
     return text;
 

@@ -203,6 +203,39 @@ export const storage = {
     }
   },
 
+  /**
+   * Save AI conversation (chat) record
+   * payload: { messages: [{role,text}], divination?, session?, user?, metadata? }
+   */
+  saveConversation: async (conversationId: string | undefined, payload: any): Promise<string | null> => {
+    if (await isFirebaseConfigured()) {
+      try {
+        const id = await firebaseService.saveConversationRecord(conversationId, payload);
+        return id;
+      } catch (e) {
+        console.error('[Storage] Firebase saveConversation failed, falling back to localStorage', e);
+        // fallthrough to localStorage
+      }
+    }
+
+    try {
+      const storageKey = 'xiangqi_ai_conversations';
+      const raw = localStorage.getItem(storageKey);
+      const db = raw ? JSON.parse(raw) : {};
+      const id = conversationId || `${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
+      db[id] = {
+        ...payload,
+        created_at: new Date().toISOString()
+      };
+      localStorage.setItem(storageKey, JSON.stringify(db));
+      console.log(`[LocalStorage] Conversation saved: ${id}`);
+      return id;
+    } catch (e) {
+      console.error('[Storage] Error saving conversation to localStorage', e);
+      return null;
+    }
+  },
+
   checkConnection: async (): Promise<{ success: boolean; message: string }> => {
     if (await isFirebaseConfigured()) {
       return await firebaseService.checkConnection();

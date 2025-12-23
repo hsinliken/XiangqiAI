@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { DivinationResult } from '../types';
 import { chatWithDivinationAI } from '../services/geminiService_fixed';
+import { storage } from '../services/storage';
 
 interface ChatInterfaceProps {
     divinationResult: DivinationResult;
@@ -15,6 +16,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ divinationResult }
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [conversationId, setConversationId] = useState<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = () => {
@@ -24,6 +26,18 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ divinationResult }
     useEffect(() => {
         scrollToBottom();
     }, [messages, isLoading]);
+
+    // generate a conversation id on mount
+    useEffect(() => {
+        try {
+            const id = (typeof crypto !== 'undefined' && (crypto as any).randomUUID)
+                ? (crypto as any).randomUUID()
+                : `${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
+            setConversationId(id);
+        } catch (e) {
+            setConversationId(`${Date.now()}_${Math.floor(Math.random() * 1e6)}`);
+        }
+    }, []);
 
     const handleSend = async () => {
         if (!input.trim() || isLoading) return;
@@ -37,10 +51,32 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ divinationResult }
         setIsLoading(true);
 
         try {
-            // Call AI Service
-            const responseText = await chatWithDivinationAI(divinationResult, messages, userMsg);
+            // Persist the user message first (non-blocking)
+            try {
+                await storage.saveConversation(conversationId || undefined, {
+                    messages: [{ role: 'user', text: userMsg }],
+                    divination: divinationResult || null
+                });
+            } catch (e) {
+                console.warn('Failed to save user message locally/remote:', e);
+            }
 
-            setMessages(prev => [...prev, { role: 'model', text: responseText }]);
+            // Call AI Service (pass conversationId so service can tag the record)
+            const responseText = await chatWithDivinationAI(divinationResult, messages, userMsg, conversationId || undefined);
+
+            // Append model message locally
+            const updated = [...messages, { role: 'user' as const, text: userMsg }, { role: 'model' as const, text: responseText }];
+            setMessages(updated);
+
+            // Persist full exchange (non-blocking)
+            try {
+                await storage.saveConversation(conversationId || undefined, {
+                    messages: updated,
+                    divination: divinationResult || null
+                });
+            } catch (e) {
+                console.warn('Failed to save conversation after response:', e);
+            }
         } catch (error) {
             console.error("Chat Error:", error);
             setMessages(prev => [...prev, { role: 'model', text: "抱歉，神諭連結中斷，請重試。" }]);
