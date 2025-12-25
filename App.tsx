@@ -482,7 +482,7 @@ export default function App() {
 
               {/* Chat Interface */}
               <div className="mt-8">
-                <ChatInterface divinationResult={result} />
+                <ChatInterface divinationResult={result} categoryLabel={category?.label} gender={gender} />
               </div>
             </div>
           )}

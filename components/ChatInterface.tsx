@@ -5,6 +5,8 @@ import { storage } from '../services/storage';
 
 interface ChatInterfaceProps {
     divinationResult: DivinationResult;
+    categoryLabel?: string | null;
+    gender?: string | null;
 }
 
 interface Message {
@@ -12,7 +14,7 @@ interface Message {
     text: string;
 }
 
-export const ChatInterface: React.FC<ChatInterfaceProps> = ({ divinationResult }) => {
+export const ChatInterface: React.FC<ChatInterfaceProps> = ({ divinationResult, categoryLabel, gender }) => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -55,7 +57,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ divinationResult }
             try {
                 await storage.saveConversation(conversationId || undefined, {
                     messages: [{ role: 'user', text: userMsg }],
-                    divination: divinationResult || null
+                    divination: divinationResult || null,
+                    metadata: { category: categoryLabel || undefined, gender: gender || undefined }
                 });
             } catch (e) {
                 console.warn('Failed to save user message locally/remote:', e);
@@ -72,7 +75,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ divinationResult }
             try {
                 await storage.saveConversation(conversationId || undefined, {
                     messages: updated,
-                    divination: divinationResult || null
+                    divination: divinationResult || null,
+                    metadata: { category: categoryLabel || undefined, gender: gender || undefined }
                 });
             } catch (e) {
                 console.warn('Failed to save conversation after response:', e);
