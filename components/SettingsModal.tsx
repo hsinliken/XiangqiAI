@@ -31,7 +31,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, c
     if (isOpen && activeTab === 'RECORDS') {
       loadRecords();
     }
-  }, [isOpen, activeTab]);
+    // Also preload records when modal is opened and admin is authenticated
+    // so the header count (`卜卦紀錄 ({records.length})`) reflects actual data
+    // even before switching to the RECORDS tab.
+    if (isOpen && isAuthenticated) {
+      loadRecords();
+    }
+  }, [isOpen, activeTab, isAuthenticated]);
 
   // Reset auth on close
   useEffect(() => {
