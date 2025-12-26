@@ -306,8 +306,18 @@ export default function App() {
     // Now change phase to ANALYZING
     setPhase(GamePhase.ANALYZING);
 
+    // Debug logs: show selected pieces and category before calling analysis
+    try {
+      console.log('[DEBUG][handleCategorySelect] selectedPieces=', selectedPieces);
+      console.log('[DEBUG][handleCategorySelect] categoryLabel=', cat.label, 'categoryId=', cat.id, 'gender=', gender);
+    } catch (e) {
+      console.error('[DEBUG][handleCategorySelect] Error logging context', e);
+    }
+
     // Call API (Service handles caching and prompt loading internally)
+    console.log('[DEBUG] Calling analyzeDivination...');
     const res = await analyzeDivination(selectedPieces, cat.label, cat.id, capturedImage, gender || undefined);
+    console.log('[DEBUG] analyzeDivination returned result:', res);
     setResult(res);
     setPhase(GamePhase.RESULT);
   };

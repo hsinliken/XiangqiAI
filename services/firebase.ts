@@ -172,14 +172,18 @@ export const saveDivinationResult = async (
       console.log(`[Firebase] No layoutImage provided for ${uniqueKey}`);
     }
 
+    // Protect against undefined guaCode/category at runtime
+    const safeGuaCode = guaCode || '';
+    const safeCategory = category || '';
+
     // Build record object, only include layout_image if imageUrl exists
     // Firestore doesn't accept undefined values
     const record: any = {
       ...result,
       _id: uniqueKey,
       unique_key: uniqueKey,
-      gua_code: guaCode,
-      category: category,
+      gua_code: safeGuaCode,
+      category: safeCategory,
       gender: gender,
       created_at: new Date().toISOString()
     };

@@ -104,9 +104,13 @@ export const storage = {
   },
 
   saveResult: async (uniqueKey: string, guaCode: string, category: string, result: DivinationResult, layoutImage?: string, gender?: string): Promise<void> => {
+    // Ensure we never pass undefined to firebase (Firestore will drop undefined fields)
+    const safeGuaCode = guaCode || '';
+    const safeCategory = category || '';
+
     if (await isFirebaseConfigured()) {
       try {
-        await firebaseService.saveDivinationResult(uniqueKey, guaCode, category, result, layoutImage, gender);
+        await firebaseService.saveDivinationResult(uniqueKey, safeGuaCode, safeCategory, result, layoutImage, gender);
         return;
       } catch (error: any) {
         console.error('[Storage] Firebase save failed, falling back to localStorage:', error);
@@ -123,8 +127,8 @@ export const storage = {
         ...result,
         _id: uniqueKey,
         unique_key: uniqueKey,
-        gua_code: guaCode,
-        category: category,
+        gua_code: safeGuaCode,
+        category: safeCategory,
         gender: gender,
         created_at: new Date().toISOString(),
         layout_image: layoutImage

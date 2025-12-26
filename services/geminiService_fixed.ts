@@ -71,6 +71,13 @@ export const analyzeDivination = async (
 
   const guaCodeString = codeList.join(' '); // e.g., "117 227 315..."
 
+  // Debug: log generated code and related context
+  try {
+    console.log('[DEBUG][analyzeDivination] guaCodeString=', guaCodeString);
+  } catch (e) {
+    console.error('[DEBUG][analyzeDivination] Error logging guaCodeString', e);
+  }
+
   // 2. Cache Key (Using semantic values)
   const cacheKey = storage.generateCacheKey(guaCodeString, categoryId, gender);
 
@@ -110,6 +117,13 @@ export const analyzeDivination = async (
     .replace('{{USER_INPUT_CODE}}', guaCodeString)
     .replace('{{USER_INPUT_CATEGORY}}', categoryLabel)
     .replace('{{USER_INPUT_GENDER}}', gender || '');
+
+  // Debug: show truncated prompt (avoid logging full prompt)
+  try {
+    console.log('[DEBUG][analyzeDivination] finalPrompt (truncated)=', finalPrompt.substring(0, 300).replace(/\n/g, ' '));
+  } catch (e) {
+    console.error('[DEBUG][analyzeDivination] Error logging finalPrompt', e);
+  }
 
   try {
     const ai = getAI();
