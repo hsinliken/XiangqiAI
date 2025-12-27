@@ -124,6 +124,22 @@ export default function App() {
       return;
     }
 
+    // Validate that all 5 pieces are selected
+    const selectedCount = Object.values(selectedPieces).filter(p => p !== null).length;
+    if (selectedCount !== 5) {
+      alert(`請確保已選滿 5 個棋子。目前選取數量: ${selectedCount}/5`);
+      return;
+    }
+
+    // Validate that all required positions have pieces
+    const requiredPositions = [SlotPosition.CENTER, SlotPosition.LEFT, SlotPosition.RIGHT, SlotPosition.TOP, SlotPosition.BOTTOM];
+    const missingPositions = requiredPositions.filter(pos => !selectedPieces[pos]);
+    if (missingPositions.length > 0) {
+      console.error('[ERROR] Missing pieces at positions:', missingPositions);
+      alert(`部分位置尚未選取棋子，請重新選取。`);
+      return;
+    }
+
     setCategory(cat);
 
     // Capture visual representation using html2canvas BEFORE changing phase

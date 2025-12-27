@@ -1,6 +1,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { ChessPiece, DivinationResult, SlotPosition, PieceColor } from "../types";
 import { storage } from "./storage";
+import { DEFAULT_SYSTEM_PROMPT } from "../constants";
 
 // Lazy initialization of Gemini Client (only when needed)
 const getAI = () => {
@@ -74,8 +75,32 @@ export const analyzeDivination = async (
   // Debug: log generated code and related context
   try {
     console.log('[DEBUG][analyzeDivination] guaCodeString=', guaCodeString);
+    console.log('[DEBUG][analyzeDivination] codeList.length=', codeList.length);
+    console.log('[DEBUG][analyzeDivination] selectedPieces=', selectedPieces);
+    console.log('[DEBUG][analyzeDivination] categoryLabel=', categoryLabel);
   } catch (e) {
     console.error('[DEBUG][analyzeDivination] Error logging guaCodeString', e);
+  }
+
+  // Validate inputs before proceeding
+  if (!guaCodeString || guaCodeString.trim() === '' || codeList.length !== 5) {
+    console.error('[ERROR][analyzeDivination] Invalid guaCodeString:', guaCodeString, 'codeList.length:', codeList.length);
+    return {
+      luck_level: "資料不完整",
+      hexagram_name: "請重新選取",
+      analysis: `卦象代碼生成失敗。\n已選取棋子數量: ${codeList.length}/5\n請確保已選滿 5 個棋子。`,
+      advice: "請回到選棋階段，重新選取 5 個棋子。"
+    };
+  }
+
+  if (!categoryLabel || categoryLabel.trim() === '') {
+    console.error('[ERROR][analyzeDivination] Invalid categoryLabel:', categoryLabel);
+    return {
+      luck_level: "資料不完整",
+      hexagram_name: "請重新選擇",
+      analysis: `問卦類別未選擇。\n請選擇您想詢問的問題類別。`,
+      advice: "請回到類別選擇階段，選擇一個問題類別。"
+    };
   }
 
   // 2. Cache Key (Using semantic values)
@@ -111,18 +136,100 @@ export const analyzeDivination = async (
   // 4. Prepare Prompt
   // Replace placeholders in the stored System Prompt
   let systemPromptTemplate = await storage.getSystemPrompt();
+  
+  // Ensure we have a valid prompt template
+  if (!systemPromptTemplate || systemPromptTemplate.trim() === '') {
+    console.error('[ERROR] System prompt template is empty, using default');
+    systemPromptTemplate = DEFAULT_SYSTEM_PROMPT;
+  }
 
-  // Inject User Data
-  const finalPrompt = systemPromptTemplate
-    .replace('{{USER_INPUT_CODE}}', guaCodeString)
-    .replace('{{USER_INPUT_CATEGORY}}', categoryLabel)
-    .replace('{{USER_INPUT_GENDER}}', gender || '');
+  // Debug: log template before replacement
+  console.log('[DEBUG][analyzeDivination] Template contains placeholders:', {
+    hasCode: systemPromptTemplate.includes('{{USER_INPUT_CODE}}'),
+    hasCategory: systemPromptTemplate.includes('{{USER_INPUT_CATEGORY}}'),
+    hasGender: systemPromptTemplate.includes('{{USER_INPUT_GENDER}}'),
+    templateLength: systemPromptTemplate.length
+  });
 
-  // Debug: show truncated prompt (avoid logging full prompt)
+  // Inject User Data (use replaceAll to handle multiple occurrences)
+  // Try multiple replacement patterns to ensure all variations are caught
+  let finalPrompt = systemPromptTemplate
+    .replace(/\{\{USER_INPUT_CODE\}\}/g, guaCodeString)
+    .replace(/\{\{USER_INPUT_CATEGORY\}\}/g, categoryLabel)
+    .replace(/\{\{USER_INPUT_GENDER\}\}/g, gender || '');
+
+  // Also try without curly braces (in case template was modified)
+  finalPrompt = finalPrompt
+    .replace(/USER_INPUT_CODE/g, guaCodeString)
+    .replace(/USER_INPUT_CATEGORY/g, categoryLabel)
+    .replace(/USER_INPUT_GENDER/g, gender || '');
+
+  // Validate that all placeholders were replaced
+  const hasUnreplacedCode = finalPrompt.includes('{{USER_INPUT_CODE}}') || finalPrompt.includes('USER_INPUT_CODE');
+  const hasUnreplacedCategory = finalPrompt.includes('{{USER_INPUT_CATEGORY}}') || finalPrompt.includes('USER_INPUT_CATEGORY');
+  
+  if (hasUnreplacedCode || hasUnreplacedCategory) {
+    console.error('[ERROR] Placeholders not fully replaced in prompt');
+    console.error('[ERROR] Remaining placeholders:', {
+      hasCode: hasUnreplacedCode,
+      hasCategory: hasUnreplacedCategory
+    });
+    console.error('[ERROR] Values being replaced:', {
+      guaCodeString,
+      categoryLabel,
+      gender: gender || '(empty)'
+    });
+  }
+
+  // Debug: show the Input Data section of the prompt to verify replacement
   try {
-    console.log('[DEBUG][analyzeDivination] finalPrompt (truncated)=', finalPrompt.substring(0, 300).replace(/\n/g, ' '));
+    const inputDataMatch = finalPrompt.match(/# Input Data[\s\S]*?(?=# |$)/);
+    if (inputDataMatch) {
+      console.log('[DEBUG][analyzeDivination] Input Data section after replacement:', inputDataMatch[0]);
+      // Verify that the actual values are in the prompt
+      if (!inputDataMatch[0].includes(guaCodeString)) {
+        console.error('[ERROR] GuaCode not found in Input Data section!', {
+          expected: guaCodeString,
+          found: inputDataMatch[0]
+        });
+      }
+      if (!inputDataMatch[0].includes(categoryLabel)) {
+        console.error('[ERROR] Category not found in Input Data section!', {
+          expected: categoryLabel,
+          found: inputDataMatch[0]
+        });
+      }
+    }
+    console.log('[DEBUG][analyzeDivination] finalPrompt (truncated)=', finalPrompt.substring(0, 500).replace(/\n/g, ' '));
   } catch (e) {
     console.error('[DEBUG][analyzeDivination] Error logging finalPrompt', e);
+  }
+
+  // Final validation: ensure the prompt contains the actual values
+  if (!finalPrompt.includes(guaCodeString)) {
+    console.error('[ERROR] Final prompt does not contain guaCodeString!', {
+      guaCodeString,
+      promptPreview: finalPrompt.substring(0, 200)
+    });
+    return {
+      luck_level: "系統錯誤",
+      hexagram_name: "Prompt 替換失敗",
+      analysis: `系統無法正確處理卦象代碼。\n代碼: ${guaCodeString}\n請聯繫管理員檢查系統設定。`,
+      advice: "請重新嘗試，或聯繫管理員。"
+    };
+  }
+
+  if (!finalPrompt.includes(categoryLabel)) {
+    console.error('[ERROR] Final prompt does not contain categoryLabel!', {
+      categoryLabel,
+      promptPreview: finalPrompt.substring(0, 200)
+    });
+    return {
+      luck_level: "系統錯誤",
+      hexagram_name: "Prompt 替換失敗",
+      analysis: `系統無法正確處理問卦類別。\n類別: ${categoryLabel}\n請聯繫管理員檢查系統設定。`,
+      advice: "請重新嘗試，或聯繫管理員。"
+    };
   }
 
   try {
