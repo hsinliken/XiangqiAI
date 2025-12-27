@@ -106,7 +106,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, c
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
         <div className="bg-gray-900 border border-yellow-700/50 rounded-lg p-8 w-full max-w-sm shadow-2xl">
           <h2 className="text-xl font-bold text-yellow-500 mb-4 text-center">後台登入</h2>
+          <label htmlFor="admin-password" className="sr-only">管理密碼</label>
           <input
+            id="admin-password"
+            name="admin-password"
             type="password"
             placeholder="輸入管理密碼 (admin)"
             value={password}
@@ -159,7 +162,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, c
                 <p className="font-bold mb-1">⚠️ 重要規則變數</p>
                 <p>請務必保留 <code className="text-white bg-black/40 px-1 rounded">{'{{USER_INPUT_CODE}}'}</code> 與 <code className="text-white bg-black/40 px-1 rounded">{'{{USER_INPUT_CATEGORY}}'}</code> 標籤，系統將自動填入棋局代碼與問題類別。</p>
               </div>
+              <label htmlFor="system-prompt" className="sr-only">系統提示詞</label>
               <textarea
+                id="system-prompt"
+                name="system-prompt"
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 className="flex-1 w-full bg-black text-green-400 font-mono text-sm p-4 rounded border border-gray-700 focus:border-yellow-500 focus:outline-none resize-none"
@@ -217,8 +223,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, c
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-gray-400 text-xs mb-1">格局名稱</label>
+                      <label htmlFor="edit-hexagram-name" className="block text-gray-400 text-xs mb-1">格局名稱</label>
                       <input
+                        id="edit-hexagram-name"
+                        name="hexagram_name"
                         type="text"
                         value={editForm.hexagram_name || ''}
                         onChange={e => setEditForm(prev => ({ ...prev, hexagram_name: e.target.value }))}
@@ -226,8 +234,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, c
                       />
                     </div>
                     <div>
-                      <label className="block text-gray-400 text-xs mb-1">吉凶</label>
+                      <label htmlFor="edit-luck-level" className="block text-gray-400 text-xs mb-1">吉凶</label>
                       <input
+                        id="edit-luck-level"
+                        name="luck_level"
                         type="text"
                         value={editForm.luck_level || ''}
                         onChange={e => setEditForm(prev => ({ ...prev, luck_level: e.target.value }))}
@@ -237,8 +247,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, c
                   </div>
 
                   <div>
-                    <label className="block text-gray-400 text-xs mb-1">卦象分析</label>
+                    <label htmlFor="edit-analysis" className="block text-gray-400 text-xs mb-1">卦象分析</label>
                     <textarea
+                      id="edit-analysis"
+                      name="analysis"
                       value={editForm.analysis || ''}
                       onChange={e => setEditForm(prev => ({ ...prev, analysis: e.target.value }))}
                       className="w-full h-32 bg-gray-800 border border-gray-700 rounded p-2 text-white focus:border-yellow-500 outline-none"
@@ -246,8 +258,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, c
                   </div>
 
                   <div>
-                    <label className="block text-gray-400 text-xs mb-1">神諭建議</label>
+                    <label htmlFor="edit-advice" className="block text-gray-400 text-xs mb-1">神諭建議</label>
                     <textarea
+                      id="edit-advice"
+                      name="advice"
                       value={editForm.advice || ''}
                       onChange={e => setEditForm(prev => ({ ...prev, advice: e.target.value }))}
                       className="w-full h-24 bg-gray-800 border border-gray-700 rounded p-2 text-white focus:border-yellow-500 outline-none"

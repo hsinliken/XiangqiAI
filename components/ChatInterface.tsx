@@ -156,7 +156,10 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ divinationResult, 
                 {/* Input Area */}
                 <div className="p-4 bg-black/20 border-t border-white/5">
                     <div className="flex gap-2">
+                        <label htmlFor="chat-input" className="sr-only">請輸入您的問題</label>
                         <input
+                            id="chat-input"
+                            name="chat-input"
                             type="text"
                             value={input}
                             onChange={(e) => setInput(e.target.value)}

@@ -412,15 +412,15 @@ export default function App() {
                 <div className="text-sm text-yellow-200 font-medium">姓別</div>
                 <div className="flex justify-center gap-4">
                 <label className="inline-flex items-center gap-2 text-sm">
-                  <input type="radio" name="gender" value="男" checked={gender==="男"} onChange={() => setGender('男')} />
+                  <input id="gender-male" type="radio" name="gender" value="男" checked={gender==="男"} onChange={() => setGender('男')} />
                   <span className="text-white/90">男</span>
                 </label>
                 <label className="inline-flex items-center gap-2 text-sm">
-                  <input type="radio" name="gender" value="女" checked={gender==="女"} onChange={() => setGender('女')} />
+                  <input id="gender-female" type="radio" name="gender" value="女" checked={gender==="女"} onChange={() => setGender('女')} />
                   <span className="text-white/90">女</span>
                 </label>
                 <label className="inline-flex items-center gap-2 text-sm">
-                  <input type="radio" name="gender" value="其他" checked={gender==="其他"} onChange={() => setGender('其他')} />
+                  <input id="gender-other" type="radio" name="gender" value="其他" checked={gender==="其他"} onChange={() => setGender('其他')} />
                   <span className="text-white/90">其他</span>
                 </label>
                 </div>
