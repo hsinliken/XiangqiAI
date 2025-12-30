@@ -7,7 +7,7 @@ interface LayoutSlotsProps {
 }
 
 export const LayoutSlots: React.FC<LayoutSlotsProps> = ({ selectedPieces, nextSlot }) => {
-  
+
   const renderSlot = (position: SlotPosition) => {
     const piece = selectedPieces[position];
     const isNext = nextSlot === position;
@@ -18,31 +18,33 @@ export const LayoutSlots: React.FC<LayoutSlotsProps> = ({ selectedPieces, nextSl
         <div className={`
           relative w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full 
           flex items-center justify-center
-          ${hasPiece ? 'wood-texture border-[3px] border-slate-600/60 tactile-shadow' : 'bg-slate-700/15 border-2 border-dashed border-slate-600/40'}
-          ${isNext && !hasPiece ? 'animate-pulse border-slate-500/50 bg-slate-700/25 warm-glow' : ''}
+          ${hasPiece
+            ? 'bg-gradient-to-br from-[#fff9e6] to-[#fceeb5] border-[3px] border-[#e6d07a] shadow-[0_4px_12px_rgba(0,0,0,0.3)]'
+            : 'bg-yellow-50/10 border-2 border-dashed border-yellow-200/30'}
+          ${isNext && !hasPiece ? 'animate-pulse border-yellow-300/50 bg-yellow-100/10' : ''}
         `}>
           {hasPiece ? (
-            <div className="w-[88%] h-[88%] rounded-full border-2 border-slate-500/50 flex items-center justify-center relative">
-              {/* Inner glow ring for depth */}
-              <div className="absolute inset-0 rounded-full border border-slate-400/30"></div>
-              <span className={`text-3xl sm:text-4xl md:text-5xl font-bold relative z-10 ${piece?.color === PieceColor.RED ? 'text-red-900 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]' : 'text-black drop-shadow-[0_2px_4px_rgba(255,255,255,0.3)]'}`}>
+            <div className="w-[88%] h-[88%] rounded-full border border-[#e6d07a]/50 flex items-center justify-center relative shadow-inner">
+              {/* Inner ring for depth */}
+              <div className="absolute inset-0 rounded-full border border-white/40"></div>
+              <span className={`text-3xl sm:text-4xl md:text-5xl font-bold relative z-10 ${piece?.color === PieceColor.RED ? 'text-[#8b0000]' : 'text-[#1a1a1a]'} drop-shadow-sm`}>
                 {piece?.label}
               </span>
             </div>
           ) : (
-            <span className="text-slate-700/50 text-xs sm:text-sm font-serif">{SLOT_LABELS[position].split(' ')[0]}</span>
+            <span className="text-yellow-100/40 text-xs sm:text-sm font-serif">{SLOT_LABELS[position].split(' ')[0]}</span>
           )}
         </div>
-        <span className="mt-2 text-xs text-slate-700/60 font-light font-serif">{SLOT_LABELS[position]}</span>
+        <span className="mt-2 text-xs text-yellow-100/60 font-light font-serif tracking-widest">{SLOT_LABELS[position]}</span>
       </div>
     );
   };
 
   return (
-    <div id="layout-slots-capture" className="grid grid-cols-3 gap-6 sm:gap-10 mx-auto w-fit my-4 p-6 relative">
+    <div id="layout-slots-capture" className="grid grid-cols-3 gap-6 sm:gap-10 mx-auto w-fit my-4 p-8 relative bg-slate-900/30 backdrop-blur-md rounded-3xl border border-white/10 shadow-2xl">
       {/* Subtle warm glow around the layout */}
-      <div className="absolute inset-0 -z-10 warm-glow rounded-3xl"></div>
-      
+      <div className="absolute inset-0 -z-10 warm-glow rounded-3xl opacity-50"></div>
+
       {/* Row 1: Top (Center Column) */}
       <div className="col-start-2 row-start-1 flex justify-center">
         {renderSlot(SlotPosition.TOP)}

@@ -398,15 +398,7 @@ export default function App() {
       {/* Main Content Area */}
       <main className="flex-1 w-full max-w-5xl mx-auto p-4 flex flex-col items-center justify-start relative pb-20 z-10">
 
-        {/* Top: Layout Visualizer (Slots) */}
-        <div className="w-full flex justify-center mb-4">
-          <div className="scale-90 sm:scale-100">
-            <LayoutSlots
-              selectedPieces={selectedPieces}
-              nextSlot={phase === GamePhase.PICKING && selectedCount < 5 ? SELECTION_ORDER[selectedCount] : null}
-            />
-          </div>
-        </div>
+
 
         {/* Bottom: The Board / Controls */}
         <div className="w-full transition-opacity duration-500">
@@ -422,11 +414,11 @@ export default function App() {
             <div className="animate-fade-in w-full">
               {/* Calligraphy instruction banner */}
               <div className="text-center mb-8 mt-4">
-                <p className="calligraphy-text text-2xl sm:text-3xl md:text-4xl text-slate-800/90 mb-2 drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)]">
+                <p className="calligraphy-text text-2xl sm:text-3xl md:text-4xl text-yellow-300 mb-2 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
                   靜心默念問題，憑直覺抽取棋子
                 </p>
                 {selectedCount > 0 && selectedCount < 5 && (
-                  <p className="text-slate-700/70 text-sm mt-2 font-serif">
+                  <p className="text-yellow-300 text-sm mt-2 font-serif drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                     已選 {selectedCount} / 5
                   </p>
                 )}
@@ -437,22 +429,22 @@ export default function App() {
 
           {phase === GamePhase.CATEGORY_SELECT && (
             <div className="w-full max-w-lg mx-auto mt-4 animate-fade-in-up">
-              <h2 className="text-2xl text-center text-slate-800 mb-6 font-serif drop-shadow-sm">請選擇您想詢問的類別</h2>
+              <h2 className="text-2xl text-center text-yellow-300 mb-6 font-serif drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">請選擇您想詢問的類別</h2>
               <div className="flex flex-col items-center gap-2 mb-4">
-                <div className="text-sm text-slate-700 font-medium">性別</div>
+                <div className="text-sm text-yellow-300 font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">性別</div>
                 <div className="flex justify-center gap-4">
-                <label className="inline-flex items-center gap-2 text-sm">
-                  <input id="gender-male" type="radio" name="gender" value="男" checked={gender==="男"} onChange={() => setGender('男')} />
-                  <span className="text-slate-800/90">男</span>
-                </label>
-                <label className="inline-flex items-center gap-2 text-sm">
-                  <input id="gender-female" type="radio" name="gender" value="女" checked={gender==="女"} onChange={() => setGender('女')} />
-                  <span className="text-slate-800/90">女</span>
-                </label>
-                <label className="inline-flex items-center gap-2 text-sm">
-                  <input id="gender-other" type="radio" name="gender" value="其他" checked={gender==="其他"} onChange={() => setGender('其他')} />
-                  <span className="text-slate-800/90">其他</span>
-                </label>
+                  <label className="inline-flex items-center gap-2 text-sm">
+                    <input id="gender-male" type="radio" name="gender" value="男" checked={gender === "男"} onChange={() => setGender('男')} />
+                    <span className="text-yellow-300 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">男</span>
+                  </label>
+                  <label className="inline-flex items-center gap-2 text-sm">
+                    <input id="gender-female" type="radio" name="gender" value="女" checked={gender === "女"} onChange={() => setGender('女')} />
+                    <span className="text-yellow-300 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">女</span>
+                  </label>
+                  <label className="inline-flex items-center gap-2 text-sm">
+                    <input id="gender-other" type="radio" name="gender" value="其他" checked={gender === "其他"} onChange={() => setGender('其他')} />
+                    <span className="text-yellow-300 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">其他</span>
+                  </label>
                 </div>
               </div>
               <div className="grid grid-cols-1 gap-4">
@@ -475,7 +467,7 @@ export default function App() {
             <div className="flex flex-col items-center justify-center mt-8">
               <div className="text-4xl mb-4 animate-bounce">🔮</div>
               <h2 className="text-xl text-yellow-200 mb-2 font-serif">正在請示神諭...</h2>
-              <p className="text-slate-700/70 text-sm">正在分析五行方位與卦象...</p>
+              <p className="text-yellow-300 text-sm drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">正在分析五行方位與卦象...</p>
             </div>
           )}
 
@@ -526,6 +518,16 @@ export default function App() {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Bottom: Layout Visualizer (Slots) - Moved here */}
+        <div className="w-full flex justify-center mt-8 order-last">
+          <div className="scale-90 sm:scale-100">
+            <LayoutSlots
+              selectedPieces={selectedPieces}
+              nextSlot={phase === GamePhase.PICKING && selectedCount < 5 ? SELECTION_ORDER[selectedCount] : null}
+            />
+          </div>
         </div>
 
       </main>
