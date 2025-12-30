@@ -120,7 +120,7 @@ export default function App() {
 
   const handleCategorySelect = async (cat: typeof CATEGORIES[0]) => {
     if (!gender) {
-      alert('請先選擇姓別 (男 / 女 / 其他)');
+      alert('請先選擇性別 (男 / 女 / 其他)');
       return;
     }
 
@@ -362,34 +362,41 @@ export default function App() {
     </div>
   );
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-900 via-green-800 to-teal-900 text-white flex flex-col relative overflow-hidden">
+  // Generate magical dust motes
+  const dustMotes = Array.from({ length: 12 }, (_, i) => (
+    <div
+      key={i}
+      className="dust-mote"
+      style={{
+        left: `${Math.random() * 100}%`,
+        animationDelay: `${Math.random() * 15}s`,
+        animationDuration: `${15 + Math.random() * 10}s`
+      }}
+    />
+  ));
 
-      {/* Header */}
-      <header className="p-4 border-b border-white/10 bg-black/20 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-4xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full border-2 border-yellow-400 bg-red-900/80 flex items-center justify-center text-yellow-200 font-bold font-serif shadow-lg">
-              卜
-            </div>
-            <h1 className="text-xl sm:text-2xl font-bold text-yellow-100/90 tracking-widest drop-shadow-md">
-              象棋卜卦
-            </h1>
-          </div>
-          <button
-            onClick={() => setIsSettingsOpen(true)}
-            className="text-white/40 hover:text-white transition-colors"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-          </button>
-        </div>
+  return (
+    <div className="min-h-screen text-slate-800 flex flex-col relative overflow-hidden z-10">
+
+      {/* Magical dust motes */}
+      {dustMotes}
+
+      {/* Minimalist Header */}
+      <header className="p-3 sticky top-0 z-40 flex justify-end">
+        <button
+          onClick={() => setIsSettingsOpen(true)}
+          className="text-slate-700/70 hover:text-slate-800 transition-colors p-2 rounded-full hover:bg-slate-700/15 backdrop-blur-sm"
+          aria-label="設定"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </button>
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 w-full max-w-5xl mx-auto p-4 flex flex-col items-center justify-start relative pb-20">
+      <main className="flex-1 w-full max-w-5xl mx-auto p-4 flex flex-col items-center justify-start relative pb-20 z-10">
 
         {/* Top: Layout Visualizer (Slots) */}
         <div className="w-full flex justify-center mb-4">
@@ -406,38 +413,45 @@ export default function App() {
 
           {phase === GamePhase.SHUFFLING && (
             <div className="flex flex-col items-center justify-center mt-8 animate-pulse">
-              <span className="text-2xl text-yellow-100/70 mb-4 font-serif">洗牌中...</span>
+              <span className="text-2xl text-slate-700/80 mb-4 font-serif">洗牌中...</span>
               <div className="w-16 h-16 border-4 border-t-yellow-300 border-r-transparent border-b-yellow-300 border-l-transparent rounded-full animate-spin"></div>
             </div>
           )}
 
           {phase === GamePhase.PICKING && (
             <div className="animate-fade-in w-full">
-              <p className="text-center text-yellow-100/90 mb-4 animate-bounce font-medium tracking-wide">
-                {selectedCount === 0 && "請直覺選取第一顆棋子（中宮）..."}
-                {selectedCount > 0 && selectedCount < 5 && `請選取下一顆棋子（還剩 ${5 - selectedCount} 顆）...`}
-              </p>
+              {/* Calligraphy instruction banner */}
+              <div className="text-center mb-8 mt-4">
+                <p className="calligraphy-text text-2xl sm:text-3xl md:text-4xl text-slate-800/90 mb-2 drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)]">
+                  靜心默念問題，憑直覺抽取棋子
+                </p>
+                {selectedCount > 0 && selectedCount < 5 && (
+                  <p className="text-slate-700/70 text-sm mt-2 font-serif">
+                    已選 {selectedCount} / 5
+                  </p>
+                )}
+              </div>
               {renderBoard()}
             </div>
           )}
 
           {phase === GamePhase.CATEGORY_SELECT && (
             <div className="w-full max-w-lg mx-auto mt-4 animate-fade-in-up">
-              <h2 className="text-2xl text-center text-white mb-6 font-serif">請選擇您想詢問的類別</h2>
+              <h2 className="text-2xl text-center text-slate-800 mb-6 font-serif drop-shadow-sm">請選擇您想詢問的類別</h2>
               <div className="flex flex-col items-center gap-2 mb-4">
-                <div className="text-sm text-yellow-200 font-medium">姓別</div>
+                <div className="text-sm text-slate-700 font-medium">性別</div>
                 <div className="flex justify-center gap-4">
                 <label className="inline-flex items-center gap-2 text-sm">
                   <input id="gender-male" type="radio" name="gender" value="男" checked={gender==="男"} onChange={() => setGender('男')} />
-                  <span className="text-white/90">男</span>
+                  <span className="text-slate-800/90">男</span>
                 </label>
                 <label className="inline-flex items-center gap-2 text-sm">
                   <input id="gender-female" type="radio" name="gender" value="女" checked={gender==="女"} onChange={() => setGender('女')} />
-                  <span className="text-white/90">女</span>
+                  <span className="text-slate-800/90">女</span>
                 </label>
                 <label className="inline-flex items-center gap-2 text-sm">
                   <input id="gender-other" type="radio" name="gender" value="其他" checked={gender==="其他"} onChange={() => setGender('其他')} />
-                  <span className="text-white/90">其他</span>
+                  <span className="text-slate-800/90">其他</span>
                 </label>
                 </div>
               </div>
@@ -446,11 +460,11 @@ export default function App() {
                   <button
                     key={cat.id}
                     onClick={() => handleCategorySelect(cat)}
-                    className="p-4 bg-white/10 backdrop-blur-sm border border-yellow-200/30 rounded-lg hover:bg-white/20 hover:border-yellow-300 transition-all flex items-center gap-4 group shadow-md"
+                    className="p-4 bg-white/40 backdrop-blur-sm border border-slate-300/50 rounded-lg hover:bg-white/60 hover:border-slate-400/60 transition-all flex items-center gap-4 group shadow-md"
                     disabled={!gender}
                   >
                     <span className="text-2xl group-hover:scale-110 transition-transform">{cat.icon}</span>
-                    <span className="text-lg text-yellow-50 font-serif tracking-wider">{cat.label}</span>
+                    <span className="text-lg text-slate-800 font-serif tracking-wider">{cat.label}</span>
                   </button>
                 ))}
               </div>
@@ -461,38 +475,38 @@ export default function App() {
             <div className="flex flex-col items-center justify-center mt-8">
               <div className="text-4xl mb-4 animate-bounce">🔮</div>
               <h2 className="text-xl text-yellow-200 mb-2 font-serif">正在請示神諭...</h2>
-              <p className="text-white/60 text-sm">正在分析五行方位與卦象...</p>
+              <p className="text-slate-700/70 text-sm">正在分析五行方位與卦象...</p>
             </div>
           )}
 
           {phase === GamePhase.RESULT && result && (
             <div className="w-full max-w-2xl mx-auto mt-4 animate-fade-in">
-              <div className="bg-white/10 backdrop-blur-xl border border-yellow-200/40 rounded-xl p-6 shadow-2xl relative overflow-hidden">
+              <div className="bg-white/60 backdrop-blur-xl border border-slate-300/50 rounded-xl p-6 shadow-2xl relative overflow-hidden">
                 {/* Ornamental corner */}
-                <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-yellow-200/20 rounded-tl-xl"></div>
-                <div className="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-yellow-200/20 rounded-br-xl"></div>
+                <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-slate-400/30 rounded-tl-xl"></div>
+                <div className="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-slate-400/30 rounded-br-xl"></div>
 
                 <div className="text-center mb-8">
-                  <div className="inline-block px-4 py-1 bg-emerald-900/60 rounded-full border border-emerald-400/30 text-emerald-100 text-sm mb-2 shadow-sm">
+                  <div className="inline-block px-4 py-1 bg-slate-700/80 rounded-full border border-slate-600/50 text-white text-sm mb-2 shadow-sm">
                     {category?.label}
                   </div>
-                  <h2 className="text-4xl md:text-5xl font-bold text-yellow-300 font-serif mb-2 tracking-widest drop-shadow-md">{result.hexagram_name}</h2>
-                  <span className={`text-xl font-bold px-3 py-1 rounded shadow-sm inline-block mt-2 ${result.luck_level.includes('吉') ? 'text-red-100 bg-red-900/60 border border-red-400/30' :
-                    result.luck_level.includes('凶') ? 'text-gray-200 bg-gray-700/60 border border-gray-400/30' : 'text-blue-100 bg-blue-900/60 border border-blue-400/30'
+                  <h2 className="text-4xl md:text-5xl font-bold text-slate-800 font-serif mb-2 tracking-widest drop-shadow-sm">{result.hexagram_name}</h2>
+                  <span className={`text-xl font-bold px-3 py-1 rounded shadow-sm inline-block mt-2 ${result.luck_level.includes('吉') ? 'text-white bg-red-600/80 border border-red-500/50' :
+                    result.luck_level.includes('凶') ? 'text-white bg-slate-600/80 border border-slate-500/50' : 'text-white bg-blue-600/80 border border-blue-500/50'
                     }`}>
                     {result.luck_level}
                   </span>
                 </div>
 
-                <div className="space-y-6 text-gray-100 leading-relaxed font-serif text-lg">
-                  <div className="bg-black/20 p-5 rounded-lg border border-white/10 shadow-inner">
-                    <h3 className="text-yellow-400 font-bold mb-2 uppercase text-xs tracking-wider border-b border-white/10 pb-1">卦象分析</h3>
+                <div className="space-y-6 text-slate-800 leading-relaxed font-serif text-lg">
+                  <div className="bg-white/50 p-5 rounded-lg border border-slate-300/40 shadow-inner">
+                    <h3 className="text-slate-700 font-bold mb-2 uppercase text-xs tracking-wider border-b border-slate-400/30 pb-1">卦象分析</h3>
                     <p className="opacity-90">{result.analysis}</p>
                   </div>
 
-                  <div className="bg-emerald-900/30 p-5 rounded-lg border border-emerald-500/20 shadow-inner">
-                    <h3 className="text-emerald-300 font-bold mb-2 uppercase text-xs tracking-wider border-b border-emerald-500/20 pb-1">神諭建議</h3>
-                    <p className="italic text-yellow-50/90">"{result.advice}"</p>
+                  <div className="bg-slate-100/60 p-5 rounded-lg border border-slate-300/40 shadow-inner">
+                    <h3 className="text-slate-700 font-bold mb-2 uppercase text-xs tracking-wider border-b border-slate-400/30 pb-1">神諭建議</h3>
+                    <p className="italic text-slate-800/90">"{result.advice}"</p>
                   </div>
                 </div>
 

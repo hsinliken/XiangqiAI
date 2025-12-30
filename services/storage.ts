@@ -71,7 +71,7 @@ export const storage = {
    * PRD 規則: "117-227-317-427-527_WORK"
    * @param guaCodeString - 空格分隔的代碼字串 (e.g. "117 227 ...")
    * @param category - 類別代碼 (e.g. "WORK")
-  * @param gender - 可選的姓別標籤 (e.g. "男" | "女" | "其他")
+  * @param gender - 可選的性別標籤 (e.g. "男" | "女" | "其他")
    */
   generateCacheKey: (guaCodeString: string, category: string, gender?: string): string => {
     // Replace spaces with hyphens for the key
