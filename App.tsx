@@ -5,6 +5,7 @@ import { analyzeDivination } from './services/geminiService_fixed';
 import { storage } from './services/storage';
 import { ChessPieceCard } from './components/ChessPieceCard';
 import { LayoutSlots } from './components/LayoutSlots';
+import { PieceSelector } from './components/PieceSelector'; // New import
 import { SettingsModal } from './components/SettingsModal';
 import { ChatInterface } from './components/ChatInterface';
 
@@ -38,6 +39,12 @@ export default function App() {
   // State
   const [deck, setDeck] = useState<ChessPiece[]>([]);
   const [phase, setPhase] = useState<GamePhase>(GamePhase.SHUFFLING);
+
+  // New State for Input Mode
+  const [inputMode, setInputMode] = useState<'FLIP' | 'MANUAL'>('FLIP');
+  const [isPieceSelectorOpen, setIsPieceSelectorOpen] = useState(false);
+  const [activeSlot, setActiveSlot] = useState<SlotPosition | null>(null);
+
   const [selectedPieces, setSelectedPieces] = useState<Record<SlotPosition, ChessPiece | null>>({
     [SlotPosition.CENTER]: null,
     [SlotPosition.LEFT]: null,
@@ -56,23 +63,35 @@ export default function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [systemPrompt, setSystemPrompt] = useState('');
 
-  const resetGame = useCallback(() => {
-    setPhase(GamePhase.SHUFFLING);
-    setTimeout(() => {
-      setDeck(shuffleDeck(INITIAL_DECK));
-      setSelectedPieces({
-        [SlotPosition.CENTER]: null,
-        [SlotPosition.LEFT]: null,
-        [SlotPosition.RIGHT]: null,
-        [SlotPosition.TOP]: null,
-        [SlotPosition.BOTTOM]: null
-      });
-      setSelectedCount(0);
-      setFlippedIds(new Set());
-      setCategory(null);
-      setResult(null);
-      setPhase(GamePhase.PICKING);
-    }, 800);
+  const resetGame = useCallback((mode: 'FLIP' | 'MANUAL' = 'FLIP') => {
+    // Determine initial phase based on mode
+    const initialPhase = mode === 'FLIP' ? GamePhase.SHUFFLING : GamePhase.PICKING;
+    setPhase(initialPhase);
+    setInputMode(mode);
+
+    // Reset common state
+    setSelectedPieces({
+      [SlotPosition.CENTER]: null,
+      [SlotPosition.LEFT]: null,
+      [SlotPosition.RIGHT]: null,
+      [SlotPosition.TOP]: null,
+      [SlotPosition.BOTTOM]: null
+    });
+    setSelectedCount(0);
+    setFlippedIds(new Set());
+    setCategory(null);
+    setResult(null);
+
+    if (mode === 'FLIP') {
+      setTimeout(() => {
+        setDeck(shuffleDeck(INITIAL_DECK));
+        setPhase(GamePhase.PICKING);
+      }, 800);
+    } else {
+      // In Manual mode, we don't need to shuffle, just go straight to picking
+      // No deck needed for manual layout really, but good to keep state consistent
+      setDeck([]);
+    }
   }, []);
 
   // Initialize
@@ -84,12 +103,13 @@ export default function App() {
     };
     loadPrompt();
 
-    // Initial Shuffle
-    resetGame();
+    // Initial Start (Default to FLIP)
+    resetGame('FLIP');
   }, [resetGame]);
 
+  // Handler for Flip Mode
   const handleCardClick = (piece: ChessPiece) => {
-    if (phase !== GamePhase.PICKING) return;
+    if (phase !== GamePhase.PICKING || inputMode !== 'FLIP') return;
     if (flippedIds.has(piece.id)) return;
     if (selectedCount >= 5) return;
 
@@ -118,6 +138,51 @@ export default function App() {
     }
   };
 
+  // Handlers for Manual Mode
+  const handleManualSlotClick = (position: SlotPosition) => {
+    if (phase !== GamePhase.PICKING || inputMode !== 'MANUAL') return;
+    setActiveSlot(position);
+    setIsPieceSelectorOpen(true);
+  };
+
+  const handleManualPieceSelect = (piece: ChessPiece) => {
+    if (!activeSlot) return;
+
+    // Create a unique ID for the selected piece to avoid collision if same type selected multiple times
+    // In manual mode, we relax the unique deployment constraints slightly for UX, 
+    // but ideally we should track 'used' pieces if we want to be strict.
+    // For now, constructing a new piece instance.
+    const newPiece: ChessPiece = {
+      ...piece,
+      id: `${piece.id}_manual_${Date.now()}`
+    };
+
+    setSelectedPieces(prev => ({
+      ...prev,
+      [activeSlot]: newPiece
+    }));
+
+    setIsPieceSelectorOpen(false);
+    setActiveSlot(null);
+  };
+
+  // Effect to update count in manual mode and check if ready for next phase
+  useEffect(() => {
+    if (inputMode === 'MANUAL') {
+      const count = Object.values(selectedPieces).filter(p => p !== null).length;
+      setSelectedCount(count);
+    }
+  }, [selectedPieces, inputMode]);
+
+  const confirmManualSelection = () => {
+    if (selectedCount === 5) {
+      setPhase(GamePhase.CATEGORY_SELECT);
+    } else {
+      alert('請填滿所有 5 個位置');
+    }
+  };
+
+
   const handleCategorySelect = async (cat: typeof CATEGORIES[0]) => {
     if (!gender) {
       alert('請先選擇性別 (男 / 女 / 其他)');
@@ -125,9 +190,9 @@ export default function App() {
     }
 
     // Validate that all 5 pieces are selected
-    const selectedCount = Object.values(selectedPieces).filter(p => p !== null).length;
-    if (selectedCount !== 5) {
-      alert(`請確保已選滿 5 個棋子。目前選取數量: ${selectedCount}/5`);
+    const currentSelectedCount = Object.values(selectedPieces).filter(p => p !== null).length;
+    if (currentSelectedCount !== 5) {
+      alert(`請確保已選滿 5 個棋子。目前選取數量: ${currentSelectedCount}/5`);
       return;
     }
 
@@ -322,14 +387,6 @@ export default function App() {
     // Now change phase to ANALYZING
     setPhase(GamePhase.ANALYZING);
 
-    // Debug logs: show selected pieces and category before calling analysis
-    try {
-      console.log('[DEBUG][handleCategorySelect] selectedPieces=', selectedPieces);
-      console.log('[DEBUG][handleCategorySelect] categoryLabel=', cat.label, 'categoryId=', cat.id, 'gender=', gender);
-    } catch (e) {
-      console.error('[DEBUG][handleCategorySelect] Error logging context', e);
-    }
-
     // Call API (Service handles caching and prompt loading internally)
     console.log('[DEBUG] Calling analyzeDivination...');
     const res = await analyzeDivination(selectedPieces, cat.label, cat.id, capturedImage, gender || undefined);
@@ -387,7 +444,31 @@ export default function App() {
       {dustMotes}
 
       {/* Minimalist Header */}
-      <header className="p-3 sticky top-0 z-40 flex justify-end">
+      <header className="p-3 sticky top-0 z-40 flex justify-between items-center">
+        {/* Mode Switcher */}
+        {(phase === GamePhase.SHUFFLING || phase === GamePhase.PICKING) ? (
+          <div className="flex bg-slate-800/50 rounded-full p-1 backdrop-blur-md border border-slate-700">
+            <button
+              onClick={() => resetGame('FLIP')}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${inputMode === 'FLIP'
+                  ? 'bg-blue-600 text-white shadow-lg'
+                  : 'text-slate-400 hover:text-blue-300'
+                }`}
+            >
+              翻棋模式
+            </button>
+            <button
+              onClick={() => resetGame('MANUAL')}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${inputMode === 'MANUAL'
+                  ? 'bg-yellow-600 text-white shadow-lg'
+                  : 'text-slate-400 hover:text-yellow-300'
+                }`}
+            >
+              手動輸入
+            </button>
+          </div>
+        ) : <div></div>}
+
         <button
           onClick={() => setIsSettingsOpen(true)}
           className="text-slate-700/70 hover:text-slate-800 transition-colors p-2 rounded-full hover:bg-slate-700/15 backdrop-blur-sm"
@@ -420,7 +501,7 @@ export default function App() {
               {/* Calligraphy instruction banner */}
               <div className="text-center mb-8 mt-4">
                 <p className="calligraphy-text text-2xl sm:text-3xl md:text-4xl text-yellow-300 mb-2 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
-                  靜心默念問題，憑直覺抽取棋子
+                  {inputMode === 'FLIP' ? '靜心默念問題，憑直覺抽取棋子' : '請點擊格子，手動輸入卦象'}
                 </p>
                 {selectedCount > 0 && selectedCount < 5 && (
                   <p className="text-yellow-300 text-sm mt-2 font-serif drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
@@ -428,7 +509,25 @@ export default function App() {
                   </p>
                 )}
               </div>
-              {renderBoard()}
+
+              {/* Render Cards only in FLIP mode */}
+              {inputMode === 'FLIP' && renderBoard()}
+
+              {/* In Manual Mode, show Confirm Button */}
+              {inputMode === 'MANUAL' && (
+                <div className="text-center mt-4 mb-4">
+                  <button
+                    onClick={confirmManualSelection}
+                    disabled={selectedCount < 5}
+                    className={`px-8 py-3 rounded-full font-bold tracking-wider transition-all shadow-lg ${selectedCount >= 5
+                        ? 'bg-yellow-600 hover:bg-yellow-500 text-white shadow-yellow-500/30'
+                        : 'bg-slate-700 text-slate-500 cursor-not-allowed'
+                      }`}
+                  >
+                    確認卦象
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -509,7 +608,7 @@ export default function App() {
 
                 <div className="mt-8 text-center">
                   <button
-                    onClick={resetGame}
+                    onClick={() => resetGame(inputMode)}
                     className="px-8 py-3 bg-red-800 hover:bg-red-700 text-white rounded-full border border-red-400/50 shadow-lg hover:shadow-red-900/50 transition-all font-bold tracking-wider"
                   >
                     再求一卦
@@ -530,7 +629,9 @@ export default function App() {
           <div className="scale-90 sm:scale-100">
             <LayoutSlots
               selectedPieces={selectedPieces}
-              nextSlot={phase === GamePhase.PICKING && selectedCount < 5 ? SELECTION_ORDER[selectedCount] : null}
+              nextSlot={phase === GamePhase.PICKING && selectedCount < 5 && inputMode === 'FLIP' ? SELECTION_ORDER[selectedCount] : null}
+              onSlotClick={handleManualSlotClick}
+              isInteractive={phase === GamePhase.PICKING && inputMode === 'MANUAL'}
             />
           </div>
         </div>
@@ -542,6 +643,13 @@ export default function App() {
         onClose={() => setIsSettingsOpen(false)}
         currentPrompt={systemPrompt}
         onSave={handleSaveSettings}
+      />
+
+      <PieceSelector
+        isOpen={isPieceSelectorOpen}
+        onClose={() => setIsPieceSelectorOpen(false)}
+        onSelect={handleManualPieceSelect}
+        unavailablePieceIds={new Set()}
       />
 
     </div>

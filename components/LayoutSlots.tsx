@@ -4,23 +4,38 @@ import { ChessPiece, SlotPosition, SLOT_LABELS, PieceColor } from '../types';
 interface LayoutSlotsProps {
   selectedPieces: Record<SlotPosition, ChessPiece | null>;
   nextSlot: SlotPosition | null;
+  onSlotClick?: (position: SlotPosition) => void;
+  isInteractive?: boolean;
 }
 
-export const LayoutSlots: React.FC<LayoutSlotsProps> = ({ selectedPieces, nextSlot }) => {
+export const LayoutSlots: React.FC<LayoutSlotsProps> = ({
+  selectedPieces,
+  nextSlot,
+  onSlotClick,
+  isInteractive = false
+}) => {
 
   const renderSlot = (position: SlotPosition) => {
     const piece = selectedPieces[position];
     const isNext = nextSlot === position;
     const hasPiece = !!piece;
 
+    // In interactive mode, emphasize empty slots that need filling or allow changing filled ones
+    const canInteract = isInteractive;
+
     return (
-      <div className={`flex flex-col items-center justify-center transition-all duration-500 ${isNext ? 'scale-110' : 'scale-100'}`}>
+      <div
+        className={`flex flex-col items-center justify-center transition-all duration-500 ${isNext ? 'scale-110' : 'scale-100'} ${canInteract ? 'cursor-pointer hover:scale-105' : ''}`}
+        onClick={() => canInteract && onSlotClick && onSlotClick(position)}
+      >
         <div className={`
           relative w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full 
-          flex items-center justify-center
+          flex items-center justify-center transition-colors duration-300
           ${hasPiece
             ? 'bg-gradient-to-br from-[#fff9e6] to-[#fceeb5] border-[3px] border-[#e6d07a] shadow-[0_4px_12px_rgba(0,0,0,0.3)]'
-            : 'bg-yellow-50/10 border-2 border-dashed border-yellow-200/30'}
+            : isInteractive
+              ? 'bg-yellow-50/20 border-2 border-dashed border-yellow-300/50 hover:bg-yellow-50/30'
+              : 'bg-yellow-50/10 border-2 border-dashed border-yellow-200/30'}
           ${isNext && !hasPiece ? 'animate-pulse border-yellow-300/50 bg-yellow-100/10' : ''}
         `}>
           {hasPiece ? (
@@ -32,7 +47,10 @@ export const LayoutSlots: React.FC<LayoutSlotsProps> = ({ selectedPieces, nextSl
               </span>
             </div>
           ) : (
-            <span className="text-yellow-100/40 text-xs sm:text-sm font-serif">{SLOT_LABELS[position].split(' ')[0]}</span>
+            <div className="flex flex-col items-center justify-center">
+              {isInteractive && <span className="text-2xl mb-1 opacity-50">+</span>}
+              <span className="text-yellow-100/40 text-xs sm:text-sm font-serif">{SLOT_LABELS[position].split(' ')[0]}</span>
+            </div>
           )}
         </div>
         <span className="mt-2 text-xs text-yellow-100/60 font-light font-serif tracking-widest">{SLOT_LABELS[position]}</span>
