@@ -34,7 +34,8 @@ const isFirebaseConfigured = async () => {
 // Fallback to localStorage if Firebase is not configured
 const COLLECTIONS = {
   SYSTEM_SETTINGS: 'xiangqi_system_settings',
-  DIVINATION_RESULTS: 'xiangqi_divination_results'
+  DIVINATION_RESULTS: 'xiangqi_divination_results',
+  GEMINI_MODEL: 'xiangqi_gemini_model'
 };
 
 export const storage = {
@@ -62,6 +63,25 @@ export const storage = {
   resetSystemPrompt: (): string => {
     localStorage.removeItem(COLLECTIONS.SYSTEM_SETTINGS);
     return DEFAULT_SYSTEM_PROMPT;
+  },
+
+  getGeminiModel: async (): Promise<string> => {
+    if (await isFirebaseConfigured()) {
+      const model = await firebaseService.getGeminiModel();
+      return model || 'gemini-2.5-flash';
+    }
+    // Fallback to localStorage
+    const stored = localStorage.getItem(COLLECTIONS.GEMINI_MODEL);
+    return stored || 'gemini-2.5-flash';
+  },
+
+  saveGeminiModel: async (model: string): Promise<void> => {
+    if (await isFirebaseConfigured()) {
+      await firebaseService.saveGeminiModel(model);
+      return;
+    }
+    // Fallback to localStorage
+    localStorage.setItem(COLLECTIONS.GEMINI_MODEL, model);
   },
 
   // --- Divination Results (Caching & DB) ---

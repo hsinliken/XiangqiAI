@@ -101,11 +101,11 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ divinationResult, 
             <div className="bg-white/5 backdrop-blur-md border border-yellow-200/20 rounded-xl overflow-hidden shadow-2xl flex flex-col h-[500px]">
 
                 {/* Header */}
-                <div className="bg-emerald-950/50 p-4 border-b border-white/10 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-yellow-600/20 flex items-center justify-center text-yellow-200 text-lg">
+                <div className="bg-blue-950/50 p-4 border-b border-white/10 flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-blue-600/30 flex items-center justify-center text-blue-200 text-lg border border-blue-400/30">
                         🤔
                     </div>
-                    <h3 className="text-lg font-serif text-yellow-100/90 tracking-wide">
+                    <h3 className="text-lg font-serif text-blue-100/90 tracking-wide">
                         向大師請益
                     </h3>
                 </div>
@@ -131,8 +131,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ divinationResult, 
                                 className={`
                   max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed
                   ${msg.role === 'user'
-                                        ? 'bg-emerald-600/80 text-white rounded-tr-sm border border-emerald-500/30'
-                                        : 'bg-stone-800/80 text-yellow-50/90 rounded-tl-sm border border-stone-600/30'
+                                        ? 'bg-blue-600/80 text-white rounded-tr-sm border border-blue-500/30 shadow-[0_0_10px_rgba(37,99,235,0.3)]'
+                                        : 'bg-slate-800/80 text-blue-50/90 rounded-tl-sm border border-slate-600/30 shadow-[0_0_10px_rgba(71,85,105,0.3)]'
                                     }
                 `}
                             >
@@ -143,10 +143,10 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ divinationResult, 
 
                     {isLoading && (
                         <div className="flex justify-start animate-pulse">
-                            <div className="bg-stone-800/80 rounded-2xl px-4 py-3 rounded-tl-sm border border-stone-600/30 flex gap-1">
-                                <span className="w-2 h-2 rounded-full bg-yellow-200/50 animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                                <span className="w-2 h-2 rounded-full bg-yellow-200/50 animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                                <span className="w-2 h-2 rounded-full bg-yellow-200/50 animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                            <div className="bg-slate-800/80 rounded-2xl px-4 py-3 rounded-tl-sm border border-slate-600/30 flex gap-1">
+                                <span className="w-2 h-2 rounded-full bg-blue-200/50 animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                                <span className="w-2 h-2 rounded-full bg-blue-200/50 animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                                <span className="w-2 h-2 rounded-full bg-blue-200/50 animate-bounce" style={{ animationDelay: '300ms' }}></span>
                             </div>
                         </div>
                     )}
@@ -171,7 +171,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ divinationResult, 
                         <button
                             onClick={handleSend}
                             disabled={isLoading || !input.trim()}
-                            className="bg-yellow-600/80 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            className="bg-blue-600/80 hover:bg-blue-500 text-white px-4 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg shadow-blue-500/30"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
                                 <path d="M3.105 2.289a.75.75 0 00-.826.95l1.414 4.925A1.5 1.5 0 005.135 9.25h6.115a.75.75 0 010 1.5H5.135a1.5 1.5 0 00-1.442 1.086l-1.414 4.926a.75.75 0 00.826.95 28.896 28.896 0 0015.293-7.154.75.75 0 000-1.115A28.897 28.897 0 003.105 2.289z" />

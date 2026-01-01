@@ -364,6 +364,47 @@ export const saveSystemPrompt = async (prompt: string): Promise<void> => {
   }
 };
 
+/**
+ * Get Gemini Model from Firestore
+ */
+export const getGeminiModel = async (): Promise<string> => {
+  try {
+    if (!db) {
+      return '';
+    }
+
+    const docRef = doc(db, COLLECTIONS.SYSTEM_SETTINGS, 'gemini_model');
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      return docSnap.data().value || '';
+    }
+
+    return '';
+  } catch (error) {
+    console.error('[Firebase] Error getting Gemini model:', error);
+    return '';
+  }
+};
+
+/**
+ * Save Gemini Model to Firestore
+ */
+export const saveGeminiModel = async (model: string): Promise<void> => {
+  try {
+    if (!db) {
+      throw new Error('Firebase not initialized');
+    }
+
+    const docRef = doc(db, COLLECTIONS.SYSTEM_SETTINGS, 'gemini_model');
+    await setDoc(docRef, { value: model });
+    console.log('[Firebase] Gemini model saved:', model);
+  } catch (error) {
+    console.error('[Firebase] Error saving Gemini model:', error);
+    throw error;
+  }
+};
+
 
 /**
  * Check connection to Firestore

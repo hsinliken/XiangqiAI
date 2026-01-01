@@ -136,7 +136,7 @@ export const analyzeDivination = async (
   // 4. Prepare Prompt
   // Replace placeholders in the stored System Prompt
   let systemPromptTemplate = await storage.getSystemPrompt();
-  
+
   // Ensure we have a valid prompt template
   if (!systemPromptTemplate || systemPromptTemplate.trim() === '') {
     console.error('[ERROR] System prompt template is empty, using default');
@@ -167,7 +167,7 @@ export const analyzeDivination = async (
   // Validate that all placeholders were replaced
   const hasUnreplacedCode = finalPrompt.includes('{{USER_INPUT_CODE}}') || finalPrompt.includes('USER_INPUT_CODE');
   const hasUnreplacedCategory = finalPrompt.includes('{{USER_INPUT_CATEGORY}}') || finalPrompt.includes('USER_INPUT_CATEGORY');
-  
+
   if (hasUnreplacedCode || hasUnreplacedCategory) {
     console.error('[ERROR] Placeholders not fully replaced in prompt');
     console.error('[ERROR] Remaining placeholders:', {
@@ -232,10 +232,15 @@ export const analyzeDivination = async (
     };
   }
 
+
   try {
     const ai = getAI();
+    // Get model from storage
+    const modelVersion = await storage.getGeminiModel();
+    console.log(`[Gemini] Using model: ${modelVersion}`);
+
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: modelVersion,
       config: {
         systemInstruction: finalPrompt, // Pass the fully constructed prompt with rules
         responseMimeType: 'application/json',
@@ -312,6 +317,8 @@ export const chatWithDivinationAI = async (
 ): Promise<string> => {
   try {
     const ai = getAI();
+    // Get model from storage
+    const modelVersion = await storage.getGeminiModel();
 
     // Construct the system instruction (persona and context)
     const context = `
@@ -341,7 +348,7 @@ export const chatWithDivinationAI = async (
     ];
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: modelVersion,
       config: {
         systemInstruction: context,
       },

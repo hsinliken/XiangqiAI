@@ -338,9 +338,10 @@ export default function App() {
     setPhase(GamePhase.RESULT);
   };
 
-  const handleSaveSettings = async (newPrompt: string) => {
+  const handleSaveSettings = async (newPrompt: string, newModel: string) => {
     // Save to DB via service
     await storage.saveSystemPrompt(newPrompt);
+    await storage.saveGeminiModel(newModel);
     setSystemPrompt(newPrompt);
   };
 
@@ -376,7 +377,11 @@ export default function App() {
   ));
 
   return (
-    <div className="min-h-screen text-slate-800 flex flex-col relative overflow-hidden z-10">
+    <div
+      className="min-h-screen text-blue-50 flex flex-col relative overflow-hidden z-10 bg-cover bg-center bg-no-repeat fixed inset-0"
+      style={{ backgroundImage: 'url(/bg-scifi.png)' }}
+    >
+      <div className="absolute inset-0 bg-black/40 pointer-events-none z-0"></div>
 
       {/* Magical dust motes */}
       {dustMotes}
@@ -452,11 +457,11 @@ export default function App() {
                   <button
                     key={cat.id}
                     onClick={() => handleCategorySelect(cat)}
-                    className="p-4 bg-white/40 backdrop-blur-sm border border-slate-300/50 rounded-lg hover:bg-white/60 hover:border-slate-400/60 transition-all flex items-center gap-4 group shadow-md"
+                    className="p-4 bg-slate-900/60 backdrop-blur-sm border border-blue-500/30 rounded-lg hover:bg-slate-800/80 hover:border-blue-400/60 transition-all flex items-center gap-4 group shadow-md shadow-blue-900/20"
                     disabled={!gender}
                   >
-                    <span className="text-2xl group-hover:scale-110 transition-transform">{cat.icon}</span>
-                    <span className="text-lg text-slate-800 font-serif tracking-wider">{cat.label}</span>
+                    <span className="text-2xl group-hover:scale-110 transition-transform text-blue-300">{cat.icon}</span>
+                    <span className="text-lg text-blue-100 font-serif tracking-wider">{cat.label}</span>
                   </button>
                 ))}
               </div>
@@ -473,16 +478,16 @@ export default function App() {
 
           {phase === GamePhase.RESULT && result && (
             <div className="w-full max-w-2xl mx-auto mt-4 animate-fade-in">
-              <div className="bg-white/60 backdrop-blur-xl border border-slate-300/50 rounded-xl p-6 shadow-2xl relative overflow-hidden">
+              <div className="bg-slate-900/80 backdrop-blur-xl border border-blue-500/30 rounded-xl p-6 shadow-2xl shadow-blue-900/50 relative overflow-hidden text-blue-50">
                 {/* Ornamental corner */}
-                <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-slate-400/30 rounded-tl-xl"></div>
-                <div className="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-slate-400/30 rounded-br-xl"></div>
+                <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-blue-400/30 rounded-tl-xl shadow-[0_0_10px_rgba(59,130,246,0.5)]"></div>
+                <div className="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-blue-400/30 rounded-br-xl shadow-[0_0_10px_rgba(59,130,246,0.5)]"></div>
 
                 <div className="text-center mb-8">
-                  <div className="inline-block px-4 py-1 bg-slate-700/80 rounded-full border border-slate-600/50 text-white text-sm mb-2 shadow-sm">
+                  <div className="inline-block px-4 py-1 bg-blue-900/60 rounded-full border border-blue-500/50 text-blue-200 text-sm mb-2 shadow-sm shadow-blue-500/20">
                     {category?.label}
                   </div>
-                  <h2 className="text-4xl md:text-5xl font-bold text-slate-800 font-serif mb-2 tracking-widest drop-shadow-sm">{result.hexagram_name}</h2>
+                  <h2 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-200 via-white to-blue-200 font-serif mb-2 tracking-widest drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]">{result.hexagram_name}</h2>
                   <span className={`text-xl font-bold px-3 py-1 rounded shadow-sm inline-block mt-2 ${result.luck_level.includes('吉') ? 'text-white bg-red-600/80 border border-red-500/50' :
                     result.luck_level.includes('凶') ? 'text-white bg-slate-600/80 border border-slate-500/50' : 'text-white bg-blue-600/80 border border-blue-500/50'
                     }`}>
@@ -490,15 +495,15 @@ export default function App() {
                   </span>
                 </div>
 
-                <div className="space-y-6 text-slate-800 leading-relaxed font-serif text-lg">
-                  <div className="bg-white/50 p-5 rounded-lg border border-slate-300/40 shadow-inner">
-                    <h3 className="text-slate-700 font-bold mb-2 uppercase text-xs tracking-wider border-b border-slate-400/30 pb-1">卦象分析</h3>
+                <div className="space-y-6 text-blue-100 leading-relaxed font-serif text-lg">
+                  <div className="bg-black/40 p-5 rounded-lg border border-blue-500/20 shadow-inner">
+                    <h3 className="text-blue-300 font-bold mb-2 uppercase text-xs tracking-wider border-b border-blue-500/30 pb-1">卦象分析</h3>
                     <p className="opacity-90">{result.analysis}</p>
                   </div>
 
-                  <div className="bg-slate-100/60 p-5 rounded-lg border border-slate-300/40 shadow-inner">
-                    <h3 className="text-slate-700 font-bold mb-2 uppercase text-xs tracking-wider border-b border-slate-400/30 pb-1">神諭建議</h3>
-                    <p className="italic text-slate-800/90">"{result.advice}"</p>
+                  <div className="bg-blue-900/20 p-5 rounded-lg border border-blue-500/20 shadow-inner">
+                    <h3 className="text-blue-300 font-bold mb-2 uppercase text-xs tracking-wider border-b border-blue-500/30 pb-1">神諭建議</h3>
+                    <p className="italic text-blue-50/90">"{result.advice}"</p>
                   </div>
                 </div>
 

@@ -113,8 +113,11 @@ export const analyzeDivination = async (
 
   try {
     const ai = getAI();
+    // Get model from storage
+    const modelVersion = await storage.getGeminiModel();
+
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: modelVersion,
       config: {
         systemInstruction: finalPrompt, // Pass the fully constructed prompt with rules
         responseMimeType: 'application/json',
@@ -190,6 +193,7 @@ export const chatWithDivinationAI = async (
 ): Promise<string> => {
   try {
     const ai = getAI();
+    const modelVersion = await storage.getGeminiModel();
 
     // Construct the system instruction (persona and context)
     const context = `

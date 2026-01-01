@@ -7,7 +7,7 @@ interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentPrompt: string;
-  onSave: (newPrompt: string) => void;
+  onSave: (newPrompt: string, newModel: string) => void;
 }
 
 type Tab = 'SETTINGS' | 'RECORDS';
@@ -15,6 +15,7 @@ type Tab = 'SETTINGS' | 'RECORDS';
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, currentPrompt, onSave }) => {
   const [activeTab, setActiveTab] = useState<Tab>('SETTINGS');
   const [prompt, setPrompt] = useState(currentPrompt);
+  const [geminiModel, setGeminiModel] = useState('gemini-2.5-flash');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
 
@@ -25,7 +26,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, c
 
   useEffect(() => {
     setPrompt(currentPrompt);
-  }, [currentPrompt]);
+    // Load current model
+    const loadModel = async () => {
+      const model = await storage.getGeminiModel();
+      setGeminiModel(model);
+    };
+    loadModel();
+  }, [currentPrompt, isOpen]);
 
   useEffect(() => {
     if (isOpen && activeTab === 'RECORDS') {
@@ -162,7 +169,26 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, c
                 <p className="font-bold mb-1">⚠️ 重要規則變數</p>
                 <p>請務必保留 <code className="text-white bg-black/40 px-1 rounded">{'{{USER_INPUT_CODE}}'}</code> 與 <code className="text-white bg-black/40 px-1 rounded">{'{{USER_INPUT_CATEGORY}}'}</code> 標籤，系統將自動填入棋局代碼與問題類別。</p>
               </div>
-              <label htmlFor="system-prompt" className="sr-only">系統提示詞</label>
+
+              <div className="mb-6">
+                <label htmlFor="gemini-model" className="block text-yellow-500 font-bold mb-2 text-sm">Gemini 模型版本</label>
+                <select
+                  id="gemini-model"
+                  value={geminiModel}
+                  onChange={(e) => setGeminiModel(e.target.value)}
+                  className="w-full bg-gray-800 border border-gray-700 rounded p-2 text-white focus:border-yellow-500 outline-none"
+                >
+                  <option value="gemini-2.5-flash">gemini-2.5-flash (推薦 / 預設)</option>
+                  <option value="gemini-1.5-pro">gemini-1.5-pro</option>
+                  <option value="gemini-1.5-flash">gemini-1.5-flash</option>
+                  <option value="gemini-1.0-pro">gemini-1.0-pro</option>
+                  <option value="gemini-2.0-flash">gemini-2.0-flash (Experimental)</option>
+                  <option value="gemini-exp-1206">gemini-exp-1206 (Experimental)</option>
+                </select>
+                <p className="text-xs text-gray-500 mt-1">若選擇的模型版本 API Key 不支援，可能導致請求失敗。</p>
+              </div>
+
+              <label htmlFor="system-prompt" className="block text-yellow-500 font-bold mb-2 text-sm">系統提示詞 (System Prompt)</label>
               <textarea
                 id="system-prompt"
                 name="system-prompt"
@@ -179,10 +205,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, c
                   恢復預設
                 </button>
                 <button
-                  onClick={() => { onSave(prompt); onClose(); }}
+                  onClick={() => { onSave(prompt, geminiModel); onClose(); }}
                   className="px-6 py-2 bg-yellow-700 hover:bg-yellow-600 text-white rounded font-bold shadow-lg"
                 >
-                  儲存 Prompt 設定
+                  儲存設定
                 </button>
               </div>
 
@@ -316,7 +342,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, c
                               <td className="p-3 text-sm font-bold text-white">{r.hexagram_name}</td>
                               <td className="p-3 text-sm">
                                 <span className={`px-2 py-0.5 rounded text-xs border ${r.luck_level.includes('吉') ? 'bg-red-900/40 border-red-800 text-red-200' :
-                                    'bg-gray-800 border-gray-700 text-gray-300'
+                                  'bg-gray-800 border-gray-700 text-gray-300'
                                   }`}>
                                   {r.luck_level}
                                 </span>
