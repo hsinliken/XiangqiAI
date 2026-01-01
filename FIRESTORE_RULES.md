@@ -48,6 +48,11 @@ service cloud.firestore {
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // 允许用户在认证后访问 "cities" 集合中的文档
+    match /cities/{city} {
+      allow read, write: if request.auth != null;
+    }
+
     // 卜卦结果集合 - 允许所有人读取，但只有认证用户可写入
     match /divination_results/{document} {
       allow read: if true;
