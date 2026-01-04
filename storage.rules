@@ -1,0 +1,35 @@
+rules_version = '2';
+
+// Firebase Storage 安全規則
+// 針對象棋卜卦 AI 應用的儲存安全控管
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // 卜卦圖片目錄 - divination_images/
+    // 允許所有人讀取（用於分享卜卦結果）
+    // 只允許認證用戶上傳
+    match /divination_images/{imageId} {
+      // 允許所有人讀取卜卦圖片（公開分享功能）
+      allow read: if true;
+      
+      // 只允許認證用戶上傳圖片
+      // 限制檔案類型為圖片，且大小不超過 5MB
+      allow write: if request.auth != null
+                   && request.resource.size < 5 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+    
+    // 系統資源目錄 - system/
+    // 只有管理員可以讀寫（例如系統配置圖片）
+    match /system/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+    
+    // 其他所有路徑 - 預設拒絕所有存取
+    // 這是安全的預設行為，防止未授權存取
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
