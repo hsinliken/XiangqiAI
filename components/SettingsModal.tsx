@@ -179,11 +179,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, c
                   className="w-full bg-gray-800 border border-gray-700 rounded p-2 text-white focus:border-yellow-500 outline-none"
                 >
                   <option value="gemini-2.5-flash">gemini-2.5-flash (推薦 / 預設)</option>
-                  <option value="gemini-1.5-pro">gemini-1.5-pro</option>
-                  <option value="gemini-1.5-flash">gemini-1.5-flash</option>
-                  <option value="gemini-1.0-pro">gemini-1.0-pro</option>
-                  <option value="gemini-2.0-flash">gemini-2.0-flash (Experimental)</option>
-                  <option value="gemini-exp-1206">gemini-exp-1206 (Experimental)</option>
+                  <option value="gemini-2.5-pro">gemini-2.5-pro (高階推理)</option>
+                  <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite (經濟版)</option>
+                  <option value="gemini-2.0-flash">gemini-2.0-flash</option>
+                  <option value="gemini-3-flash">gemini-3-flash (最新版)</option>
                 </select>
                 <p className="text-xs text-gray-500 mt-1">若選擇的模型版本 API Key 不支援，可能導致請求失敗。</p>
               </div>
