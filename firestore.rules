@@ -1,26 +1,24 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // 允许用户在认证后访问 "cities" 集合中的文档 (用户提供的示例)
-    match /cities/{city} {
-      allow read, write: if request.auth != null;
+    // 使用者個人資料 - 限制只有登入的使用者能讀寫，且 UID 必須相符
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
-
-    // 卜卦结果集合 - 允许所有人读取，但只有认证用户可写入
+    
+    // 卜卦結果 - 允許所有人讀寫（公開使用的應用程式）
     match /divination_results/{document} {
-      allow read: if true;
-      allow write: if request.auth != null;
+      allow read, write: if true;
     }
     
-    // 系统设置集合 - 允许所有人读取，但只有认证用户可写入
+    // 系統設定 - 允許所有人讀寫（管理員設定 Prompt 等）
     match /system_settings/{document} {
-      allow read: if true;
-      allow write: if request.auth != null;
+      allow read, write: if true;
     }
     
-    // 其他所有文档 - 默认拒绝
-    match /{document=**} {
-      allow read, write: if false;
+    // AI 對話紀錄 - 允許所有人讀寫
+    match /ai_conversations/{document} {
+      allow read, write: if true;
     }
   }
 }
