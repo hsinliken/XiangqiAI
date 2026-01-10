@@ -55,7 +55,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, c
   }, [isOpen]);
 
   const handleLogin = () => {
-    if (password === 'admin') {
+    if (password === 'leeken') {
       setIsAuthenticated(true);
     } else {
       alert("密碼錯誤");
@@ -118,7 +118,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, c
             id="admin-password"
             name="admin-password"
             type="password"
-            placeholder="輸入管理密碼 (admin)"
+            placeholder="輸入管理密碼"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="w-full bg-gray-800 border border-gray-700 rounded p-2 text-white mb-4 focus:border-yellow-500 outline-none"
